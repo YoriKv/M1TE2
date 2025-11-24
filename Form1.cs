@@ -2622,7 +2622,8 @@ namespace M1TE2
 
             int offset = map_view * 1024;
             tile_num = (tile_y * 16) + tile_x;
-            int tile_num2 = (tile_set * 256) + tile_num; // :p
+            int temp_set2 = tile_set & 3; //0-3
+            int tile_num2 = (temp_set2 * 256) + tile_num; // :p
             int pal_sel = pal_y; // default 4bpp mode
             if (map_view == 2) // 2bpp mode
             {

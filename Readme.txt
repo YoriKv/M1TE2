@@ -90,6 +90,7 @@ version changes
 3.5 - bumped up version # to show that
       there were lots of changes 
 3.6 - slight changes / bug fixes
+3.7 - bug fixes
 
 
 Note, the RLE is a special compression format that I wrote, 
@@ -187,8 +188,9 @@ Tile Edit Box
 -------------
 Left click - place the currently selected color on the grid
 Right click - get the color under the pointer
-Numberpad 2,4,6,8 to move to adjacent tile.
-Arrow keys to shift the image.
+
+Numberpad 2,4,6,8 - select the next tile over
+Arrow keys - shift the tile one pixel over
 F - fills a tile with selected color
 H - flip horizontal
 Y - flip vertical
@@ -250,9 +252,21 @@ and place them on the map all as a block. But, the code to update
 the map is slower, so if you are only placing a single tile at a 
 time, it will be smoother using the 1x1 brush.
 
+
 Map Edit Only - You can now select multiple tiles on the map view
 with this brush, and copy/cut/paste/fill/delete and flip them
-all at once. 
+all at once. Pressing a hotkey while in this mode will affect
+the selected MAP area (instead of the tile editor)
+
+F - fills a selected map area with selected tile
+H - flip horizontal, tiles in the selected map area
+Y - flip vertical, tiles in the selected map area
+Delete - fills the selected map area with tile zero
+C - copy the selected map area
+X - cut the selected map area (fill with tile zero)
+V - paste to the selected map area 
+A - select all the entire tile map
+
 (some of the checkboxes are disabled with this brush/mode.
 Use key commands to flip - h and y)
 Tip - Combine fill (f) with "palette only" to change 
