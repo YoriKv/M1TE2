@@ -16,7 +16,21 @@ namespace M1TE2
     {
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         { // FILE / OPEN SESSION
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.Title = "Open an M1 Session";
+            openFileDialog1.Filter = "M1 File (*.M1)|*.M1|All files (*.*)|*.*";
 
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                LoadSessionFile(openFileDialog1.FileName);
+            }
+        } // end of OPEN SESSION
+
+
+        // Load an M1 session from a file path. Used by File / Open Session and
+        // by the optional command-line argument. Returns true if it loaded.
+        public bool LoadSessionFile(string path)
+        {
             // note, we are ignoring the header, maybe change later
             // all sizes are fixed for now
 
@@ -32,15 +46,17 @@ namespace M1TE2
             int temp3 = 0;
             int temp4 = 0;
 
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Title = "Open an M1 Session";
-            openFileDialog1.Filter = "M1 File (*.M1)|*.M1|All files (*.*)|*.*";
-
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (!System.IO.File.Exists(path))
             {
-                UndoStack.Clear(); // opening a session starts a fresh undo history
+                MessageBox.Show("File not found:\n" + path);
+                return false;
+            }
 
-                System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
+            bool loaded = false;
+            UndoStack.Clear(); // opening a session starts a fresh undo history
+
+            { // scope for the file stream
+                System.IO.FileStream fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                 if (fs.Length == 55568)
                 {
                     for (int i = 0; i < 55568; i++)
@@ -176,7 +192,8 @@ namespace M1TE2
                         else checkBox3.Checked = false;
 
                         // remember the opened file so Save overwrites it
-                        current_session_path = openFileDialog1.FileName;
+                        current_session_path = System.IO.Path.GetFullPath(path);
+                        loaded = true;
 
                         //end, updates are below
 
@@ -202,7 +219,8 @@ namespace M1TE2
                 disable_map_click = 1;  // fix bug, double click causing
                                         // mouse event on tilemap
             }
-        } // end of OPEN SESSION
+            return loaded;
+        } // end of LoadSessionFile
 
 
 

@@ -95,6 +95,12 @@ namespace M1TE2
         // full path of the currently open/saved session, "" if none yet.
         // Save Session overwrites this file instead of prompting "Save As".
         public static string current_session_path = "";
+
+        // optional .M1 path passed on the command line, auto-opened at startup
+        public static string startup_file = null;
+
+        // optional BG view (map_view index) from the command line; -1 = unset
+        public static int startup_bg = -1;
         public const int TILE_8X8 = 0;
         public const int TILE_16X16 = 1;
         public static int tilesize = TILE_8X8;
@@ -185,6 +191,23 @@ namespace M1TE2
             update_tilemap();
             label5.Focus();
             this.ActiveControl = label5;
+
+            // open a session passed on the command line, if any
+            if (!string.IsNullOrEmpty(startup_file))
+            {
+                LoadSessionFile(startup_file);
+            }
+
+            // switch to the BG view requested on the command line, if any
+            // (reuses the menu handlers so checkmarks/tileset/labels stay in sync)
+            switch (startup_bg)
+            {
+                case 0: bG1TopToolStripMenuItem_Click(this, EventArgs.Empty); break;
+                case 1: bG2ToolStripMenuItem_Click(this, EventArgs.Empty); break;
+                case 2: bG3ToolStripMenuItem_Click(this, EventArgs.Empty); break;
+                case 3: previewAllToolStripMenuItem_Click(this, EventArgs.Empty); break;
+                case 4: preview312ToolStripMenuItem_Click(this, EventArgs.Empty); break;
+            }
         }
 
 
