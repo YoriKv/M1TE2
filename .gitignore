@@ -21,3 +21,36 @@ $RECYCLE.BIN/
 # =========================
 # Operating System Files
 # =========================
+
+# =========================
+# Visual Studio / .NET
+# =========================
+
+# Visual Studio per-user state and cache folder
+.vs/
+
+# Build output
+[Oo]bj/
+
+# User-specific solution / project options
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build / test results
+[Dd]ebug/
+[Rr]elease/
+[Ll]og/
+*.log
+
+# NuGet packages
+packages/
+*.nupkg
+
+# =========================
+# JetBrains Rider / ReSharper
+# =========================
+.idea/
+_ReSharper*/
+*.DotSettings.user

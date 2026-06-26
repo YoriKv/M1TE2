@@ -1,10 +1,5 @@
 ﻿namespace M1TE2
 {
-    public static class TilesU // undo backup copy
-    {
-        public static int[] Tile_Arrays = new int[8 * 256 * 8 * 8]; // 131072 
-    }
-
         public static class Tiles
     {
         public static int[] Tile_Arrays = new int[8 * 256 * 8 * 8]; // 131072 

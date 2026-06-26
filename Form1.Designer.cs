@@ -113,6 +113,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.brushsizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.multiSelectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.x1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -194,6 +195,7 @@
             this.textBox1.TabIndex = 4;
             this.textBox1.Text = "0";
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
+            this.textBox1.Leave += new System.EventHandler(this.textBox1_Leave);
             // 
             // textBox2
             // 
@@ -204,6 +206,7 @@
             this.textBox2.TabIndex = 5;
             this.textBox2.Text = "0";
             this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
+            this.textBox2.Leave += new System.EventHandler(this.textBox2_Leave);
             // 
             // textBox3
             // 
@@ -214,6 +217,7 @@
             this.textBox3.TabIndex = 6;
             this.textBox3.Text = "0";
             this.textBox3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox3_KeyPress);
+            this.textBox3.Leave += new System.EventHandler(this.textBox3_Leave);
             // 
             // label1
             // 
@@ -251,6 +255,7 @@
             this.textBox4.TabIndex = 10;
             this.textBox4.Text = "0000";
             this.textBox4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox4_KeyPress);
+            this.textBox4.Leave += new System.EventHandler(this.textBox4_Leave);
             // 
             // label4
             // 
@@ -464,6 +469,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
             this.openToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.openToolStripMenuItem.Text = "Open Session";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
@@ -471,6 +477,7 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.saveToolStripMenuItem.Text = "Save Session";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
@@ -478,6 +485,7 @@
             // savePhotoToolStripMenuItem
             // 
             this.savePhotoToolStripMenuItem.Name = "savePhotoToolStripMenuItem";
+            this.savePhotoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
             this.savePhotoToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.savePhotoToolStripMenuItem.Text = "Export Image";
             this.savePhotoToolStripMenuItem.Click += new System.EventHandler(this.savePhotoToolStripMenuItem_Click);
@@ -877,17 +885,28 @@
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.undoToolStripMenuItem});
+            this.undoToolStripMenuItem,
+            this.redoToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
-            // 
+            //
             // undoToolStripMenuItem
-            // 
+            //
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
+            this.undoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z)));
             this.undoToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
-            this.undoToolStripMenuItem.Text = "Undo (Z)";
+            this.undoToolStripMenuItem.Text = "Undo";
             this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
+            //
+            // redoToolStripMenuItem
+            //
+            this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
+            this.redoToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Y / Ctrl+Shift+Z";
+            this.redoToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y)));
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.redoToolStripMenuItem.Text = "Redo";
+            this.redoToolStripMenuItem.Click += new System.EventHandler(this.redoToolStripMenuItem_Click);
             // 
             // brushsizeToolStripMenuItem
             // 
@@ -1302,6 +1321,7 @@
         private System.Windows.Forms.ToolStripMenuItem ldMapSelYAtSelTileOffsetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tilesizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem x8TilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem x16TilesToolStripMenuItem;

@@ -92,7 +92,9 @@ namespace M1TE2
         public static bool f3_cb3 = false; // put imported tiles on map
         public static bool flip_h = false, flip_v = false;
 
-        public static bool undo_ready = false;
+        // full path of the currently open/saved session, "" if none yet.
+        // Save Session overwrites this file instead of prompting "Save As".
+        public static string current_session_path = "";
         public const int TILE_8X8 = 0;
         public const int TILE_16X16 = 1;
         public static int tilesize = TILE_8X8;
@@ -188,89 +190,87 @@ namespace M1TE2
 
         public void Checkpoint()
         {
-            // backup for undo function
-            undo_ready = true;
-
-
-            for(int i = 0; i < 3072; ++i)
-            { // copy maps
-                MapsU.tile[i] = Maps.tile[i];
-                MapsU.palette[i] = Maps.palette[i];
-                MapsU.h_flip[i] = Maps.h_flip[i];
-                MapsU.v_flip[i] = Maps.v_flip[i];
-                MapsU.priority[i] = Maps.priority[i];
-            }
-
-            for(int i = 0; i < 131072; ++i)
-            { // copy tilesets
-                TilesU.Tile_Arrays[i] = Tiles.Tile_Arrays[i];
-            }
-
+            // push the current state onto the undo stack (call before a change)
+            UndoStack.PushUndo();
             // note, palette isn't saved for undo
         }
 
         public void Do_Undo()
         {
-            if (undo_ready == false) return;
-            
-            for (int i = 0; i < 3072; ++i)
-            { // restore maps
-                Maps.tile[i] = MapsU.tile[i];
-                Maps.palette[i] = MapsU.palette[i];
-                Maps.h_flip[i] = MapsU.h_flip[i];
-                Maps.v_flip[i] = MapsU.v_flip[i];
-                Maps.priority[i] = MapsU.priority[i];
-            }
+            if (UndoStack.Undo() == false) return; // nothing to undo
+            RefreshAfterUndoRedo();
+        }
 
-            for (int i = 0; i < 131072; ++i)
-            { // restore tilesets
-                Tiles.Tile_Arrays[i] = TilesU.Tile_Arrays[i];
-            }
+        public void Do_Redo()
+        {
+            if (UndoStack.Redo() == false) return; // nothing to redo
+            RefreshAfterUndoRedo();
+        }
+
+        // resync the UI after the maps/tilesets are restored by undo or redo
+        private void RefreshAfterUndoRedo()
+        {
+            // reload the RGB boxes, sliders and hex box for the selected colour
+            // (the palette is part of the snapshot, so it may have changed)
+            rebuild_pal_boxes();
 
             if (map_view > 2) // fix crash if in preview mode
             {
                 common_update2();
-                undo_ready = false;
                 return;
             }
 
             active_map_index = active_map_x + (active_map_y * 32) + (32 * 32 * map_view);
             int value = Maps.palette[active_map_index];
             textBox5.Text = value.ToString();
-            if (Maps.h_flip[active_map_index] == 0)
-            {
-                checkBox1.Checked = false;
-            }
-            else
-            {
-                checkBox1.Checked = true;
-            }
-            if (Maps.v_flip[active_map_index] == 0)
-            {
-                checkBox2.Checked = false;
-            }
-            else
-            {
-                checkBox2.Checked = true;
-            }
-            if (Maps.priority[active_map_index] == 0)
-            {
-                checkBox3.Checked = false;
-            }
-            else
-            {
-                checkBox3.Checked = true;
-            }
+            checkBox1.Checked = (Maps.h_flip[active_map_index] != 0);
+            checkBox2.Checked = (Maps.v_flip[active_map_index] != 0);
+            checkBox3.Checked = (Maps.priority[active_map_index] != 0);
 
             common_update2();
-
-            undo_ready = false;
         }
 
 
         private void undoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Do_Undo();
+        }
+
+        private void redoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Do_Redo();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Ctrl+Shift+Z is the alternate Redo shortcut. A menu item can only
+            // hold a single shortcut (Ctrl+Y), so this combo is handled here.
+            if (keyData == (Keys.Control | Keys.Shift | Keys.Z))
+            {
+                Do_Redo();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            // Scrolling over the map zooms into / out of the active quadrant
+            // (same as the "Zoom into Quadrant" menu item). Up = in, down = out.
+            if (pictureBox1.RectangleToScreen(pictureBox1.ClientRectangle).Contains(Cursor.Position))
+            {
+                if (tilesize == TILE_16X16 && map_view <= 2) // same guards as the menu
+                {
+                    bool wantZoom = e.Delta > 0; // wheel up zooms in
+                    if (wantZoom != zoom_Q_flag)
+                    {
+                        zoom_Q_flag = wantZoom;
+                        update_tilemap();
+                    }
+                    return; // handled
+                }
+            }
+            base.OnMouseWheel(e);
         }
 
 
@@ -1267,19 +1267,85 @@ namespace M1TE2
 
 
 
+        // --- interactive colour editing (RGB sliders and text boxes) ----------
+        // A slider drag or a text-box entry is recorded as a single undo step:
+        // the pre-edit state is captured when the interaction starts and pushed
+        // when it finishes (mouse release, Enter, or focus loss) - never per
+        // intermediate drag or keystroke.
+        private void BeginColorEdit()
+        {
+            UndoStack.BeginEdit();
+        }
+
+        private void CommitColorEdit()
+        {
+            UndoStack.CommitEdit();
+        }
+
+        // apply the R/G/B text boxes to the selected colour as one undo step
+        private void apply_rgb_textboxes()
+        {
+            BeginColorEdit();
+            update_rgb();
+            update_box4();
+            update_palette();
+            common_update2();
+            CommitColorEdit();
+        }
+
+        // apply the hex text box to the selected colour as one undo step
+        private void apply_hex_textbox()
+        {
+            string str = textBox4.Text;
+            str = str.Trim(); // remove spaces
+            int[] value = new int[4];
+            int temp;
+
+            if (str.Length < 4)
+            {
+                str = str.PadLeft(4, '0');
+            }
+
+            if (str.Length != 4) return;
+            str = str.ToUpper();
+            str = check_hex(str); //returns "Z" if fail
+            if (str == "Z") return;
+
+            textBox4.Text = str;
+
+            value[0] = hex_val(str[0]); //get int value, 0-15
+            value[1] = hex_val(str[1]);
+            value[2] = hex_val(str[2]);
+            value[3] = hex_val(str[3]);
+
+            //pass values to the other boxes
+            temp = ((value[3] & 0x0f) << 3) + ((value[2] & 0x01) << 7); // red, 5 bits
+            textBox1.Text = temp.ToString();
+            temp = ((value[2] & 0x0e) << 2) + ((value[1] & 0x03) << 6); // green, 5 bits
+            textBox2.Text = temp.ToString();
+            temp = ((value[1] & 0x0c) << 1) + ((value[0] & 0x07) << 5); // blue, 5 bits
+            textBox3.Text = temp.ToString();
+
+            BeginColorEdit();
+            update_rgb();
+            update_palette();
+            common_update2();
+            CommitColorEdit();
+        }
+
+
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e) //Red
         {
             if (e.KeyChar == (char)Keys.Return)
             {
-                update_rgb();
-                update_box4();
-
-                update_palette();
-
-                common_update2();
-
+                apply_rgb_textboxes();
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+        private void textBox1_Leave(object sender, EventArgs e) //Red
+        {
+            apply_rgb_textboxes();
         }
 
 
@@ -1288,15 +1354,14 @@ namespace M1TE2
         {
             if (e.KeyChar == (char)Keys.Return)
             {
-                update_rgb();
-                update_box4();
-
-                update_palette();
-
-                common_update2();
-
+                apply_rgb_textboxes();
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+        private void textBox2_Leave(object sender, EventArgs e) //Green
+        {
+            apply_rgb_textboxes();
         }
 
 
@@ -1305,15 +1370,14 @@ namespace M1TE2
         {
             if (e.KeyChar == (char)Keys.Return)
             {
-                update_rgb();
-                update_box4();
-
-                update_palette();
-
-                common_update2();
-
+                apply_rgb_textboxes();
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+        private void textBox3_Leave(object sender, EventArgs e) //Blue
+        {
+            apply_rgb_textboxes();
         }
 
 
@@ -1322,42 +1386,14 @@ namespace M1TE2
         {
             if (e.KeyChar == (char)Keys.Return)
             {
-                string str = textBox4.Text;
-                str = str.Trim(); // remove spaces
-                int[] value = new int[4];
-                int temp;
-
-                if (str.Length < 4)
-                {
-                    str = str.PadLeft(4, '0');
-                }
-
-                if (str.Length != 4) return;
-                str = str.ToUpper();
-                str = check_hex(str); //returns "Z" if fail
-                if (str == "Z") return;
-
-                textBox4.Text = str;
-
-                value[0] = hex_val(str[0]); //get int value, 0-15
-                value[1] = hex_val(str[1]);
-                value[2] = hex_val(str[2]);
-                value[3] = hex_val(str[3]);
-
-                //pass values to the other boxes
-                temp = ((value[3] & 0x0f) << 3) + ((value[2] & 0x01) << 7); // red, 5 bits
-                textBox1.Text = temp.ToString();
-                temp = ((value[2] & 0x0e) << 2) + ((value[1] & 0x03) << 6); // green, 5 bits
-                textBox2.Text = temp.ToString();
-                temp = ((value[1] & 0x0c) << 1) + ((value[0] & 0x07) << 5); // blue, 5 bits
-                textBox3.Text = temp.ToString();
-
-                update_rgb();
-                update_palette();
-                common_update2();
-
+                apply_hex_textbox();
                 e.Handled = true; // prevent ding on return press
             }
+        }
+
+        private void textBox4_Leave(object sender, EventArgs e) //Hex
+        {
+            apply_hex_textbox();
         }
 
 
@@ -2223,10 +2259,28 @@ namespace M1TE2
             label5.Focus();
         }
 
+        // Convert a pixel position on pictureBox1 into a map tile coordinate.
+        // When the quadrant zoom is active the view shows one 16x16 quadrant
+        // magnified 2x, so the quadrant offset and the 2x scale must be undone.
+        private void MapClickToTile(int mouseX, int mouseY, out int tx, out int ty)
+        {
+            if (zoom_Q_flag)
+            {
+                int qOffX = (active_map_x >= 16) ? 16 : 0; // quadrant locked while zoomed
+                int qOffY = (active_map_y >= 16) ? 16 : 0;
+                tx = qOffX + (mouseX >> 5); // 32 display px per tile at 2x zoom
+                ty = qOffY + (mouseY >> 5);
+            }
+            else
+            {
+                tx = mouseX >> 4; // 16 px per tile at normal scale
+                ty = mouseY >> 4;
+            }
+        }
+
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         { // tilemap
             disable_map_click = 0;
-            zoom_Q_flag = false;
 
             if (map_view > 2)
             {
@@ -2236,13 +2290,12 @@ namespace M1TE2
 
             //Checkpoint();
 
-            active_map_x = 0; active_map_y = 0;
-            var mouseEventArgs = e as MouseEventArgs;
-            if (mouseEventArgs != null)
-            {
-                active_map_x = mouseEventArgs.X >> 4;
-                active_map_y = mouseEventArgs.Y >> 4;
-            }
+            // map the click to a tile (quadrant-zoom aware) so the correct tile
+            // is selected; clicking no longer resets the zoom (use the wheel)
+            int new_x, new_y;
+            MapClickToTile(e.X, e.Y, out new_x, out new_y);
+            active_map_x = new_x;
+            active_map_y = new_y;
             if (active_map_x < 0) active_map_x = 0;
             if (active_map_x > 31) active_map_x = 31;
             if (active_map_y < 0) active_map_y = 0;
@@ -2301,6 +2354,10 @@ namespace M1TE2
                 else checkBox1.Checked = true;
                 if (Maps.v_flip[tile] == 0) checkBox2.Checked = false;
                 else checkBox2.Checked = true;
+                // also adopt the tile's flip as the brush flip, so future tile
+                // placements use it (same as picking up the tile's palette)
+                checkBox5.Checked = (Maps.h_flip[tile] != 0);
+                checkBox6.Checked = (Maps.v_flip[tile] != 0);
                 int set = (Maps.tile[tile] & 0x300) >> 8;
                 int tile2 = Maps.tile[tile] & 0xff;
                 tile_x = tile2 & 0x0f;
@@ -2408,14 +2465,11 @@ namespace M1TE2
 
             if (e.Button == MouseButtons.Left)
             {
-                active_map_x = 0; active_map_y = 0;
-                var mouseEventArgs = e as MouseEventArgs;
-                if (mouseEventArgs != null)
-                {
-
-                    active_map_x = mouseEventArgs.X >> 4;
-                    active_map_y = mouseEventArgs.Y >> 4;
-                }
+                // quadrant-zoom aware click-to-tile mapping
+                int new_x, new_y;
+                MapClickToTile(e.X, e.Y, out new_x, out new_y);
+                active_map_x = new_x;
+                active_map_y = new_y;
                 if (active_map_x < 0) active_map_x = 0;
                 if (active_map_x > 31) active_map_x = 31;
                 if (active_map_y < 0) active_map_y = 0;
@@ -2708,6 +2762,7 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.W)
             { // palette paste selected to color
+                Checkpoint(); // colour paste is one undo step
                 Palettes.pal_r[selection] = (byte)pal_r_copy;
                 Palettes.pal_g[selection] = (byte)pal_g_copy;
                 Palettes.pal_b[selection] = (byte)pal_b_copy;
@@ -2716,6 +2771,7 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.E)
             { // palette clear selected to color
+                Checkpoint(); // colour clear is one undo step
                 Palettes.pal_r[selection] = 0;
                 Palettes.pal_g[selection] = 0;
                 Palettes.pal_b[selection] = 0;
@@ -2753,11 +2809,6 @@ namespace M1TE2
             else if (e.KeyCode == Keys.D8)
             {
                 set8_change();
-            }
-
-            else if (e.KeyCode == Keys.Z)
-            {
-                Do_Undo();
             }
 
             common_update2();
@@ -2910,6 +2961,7 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.W)
             { // palette paste selected to color
+                Checkpoint(); // colour paste is one undo step
                 Palettes.pal_r[selection] = (byte)pal_r_copy;
                 Palettes.pal_g[selection] = (byte)pal_g_copy;
                 Palettes.pal_b[selection] = (byte)pal_b_copy;
@@ -2918,6 +2970,7 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.E)
             { // palette clear selected to color
+                Checkpoint(); // colour clear is one undo step
                 Palettes.pal_r[selection] = 0;
                 Palettes.pal_g[selection] = 0;
                 Palettes.pal_b[selection] = 0;
@@ -2956,11 +3009,6 @@ namespace M1TE2
             else if (e.KeyCode == Keys.D8)
             {
                 set8_change();
-            }
-
-            else if (e.KeyCode == Keys.Z)
-            {
-                Do_Undo();
             }
 
             common_update2();
@@ -3012,6 +3060,7 @@ namespace M1TE2
         {
             if (e.Button == MouseButtons.Left)
             {
+                BeginColorEdit(); // start one undo step for this slider drag
                 int val = trackBar1.Value * 8;
                 textBox1.Text = val.ToString();
 
@@ -3028,6 +3077,7 @@ namespace M1TE2
         {
             if (e.Button == MouseButtons.Left)
             {
+                BeginColorEdit(); // start one undo step for this slider drag
                 int val = trackBar2.Value * 8;
                 textBox2.Text = val.ToString();
 
@@ -3044,6 +3094,7 @@ namespace M1TE2
         {
             if (e.Button == MouseButtons.Left)
             {
+                BeginColorEdit(); // start one undo step for this slider drag
                 int val = trackBar3.Value * 8;
                 textBox3.Text = val.ToString();
 
@@ -3059,11 +3110,13 @@ namespace M1TE2
 
         private void trackBar1_MouseUp(object sender, MouseEventArgs e)
         {
+            CommitColorEdit(); // finish the drag as a single undo step
             label5.Focus();
         }
 
         private void trackBar2_MouseUp(object sender, MouseEventArgs e)
         {
+            CommitColorEdit(); // finish the drag as a single undo step
             label5.Focus();
         }
 
@@ -3985,6 +4038,7 @@ namespace M1TE2
 
         private void trackBar3_MouseUp(object sender, MouseEventArgs e)
         {
+            CommitColorEdit(); // finish the drag as a single undo step
             label5.Focus();
         }
 
@@ -4013,6 +4067,7 @@ namespace M1TE2
                         return;
                     }
                     disable_map_click = 1;
+                    Checkpoint(); // generating a palette from an image is undoable
 
                     int num_col_to_find, start_offset;
 
@@ -4460,7 +4515,7 @@ namespace M1TE2
 
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
-                    undo_ready = false;
+                    UndoStack.Clear(); // image import is not an undoable step
                     disable_map_click = 1;
                     //x8TilesToolStripMenuItem.Checked = true;
                     //x16TilesToolStripMenuItem.Checked = false;

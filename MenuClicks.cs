@@ -38,8 +38,8 @@ namespace M1TE2
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                undo_ready = false;
-                
+                UndoStack.Clear(); // opening a session starts a fresh undo history
+
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
                 if (fs.Length == 55568)
                 {
@@ -174,6 +174,9 @@ namespace M1TE2
                             else checkBox3.Checked = true;
                         }
                         else checkBox3.Checked = false;
+
+                        // remember the opened file so Save overwrites it
+                        current_session_path = openFileDialog1.FileName;
 
                         //end, updates are below
 
@@ -359,6 +362,14 @@ namespace M1TE2
             }
 
 
+            // if a session is already open (or was saved once this run),
+            // overwrite that file directly instead of prompting "Save As"
+            if (current_session_path != "")
+            {
+                System.IO.File.WriteAllBytes(current_session_path, big_array);
+                return;
+            }
+
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "M1 File (*.M1)|*.M1|All files (*.*)|*.*";
             saveFileDialog1.Title = "Save this Session";
@@ -372,6 +383,9 @@ namespace M1TE2
                     fs.WriteByte(big_array[i]);
                 }
                 fs.Close();
+
+                // remember the chosen file so later saves overwrite it
+                current_session_path = saveFileDialog1.FileName;
             }
         } // END OF SAVE SESSION
 
@@ -1786,6 +1800,8 @@ namespace M1TE2
                 }
                 if (max_size >= 2)
                 {
+                    Checkpoint(); // loading a palette is one undo step
+
                     for (int i = 0; i < 256; i++)
                     {
                         if (i >= max_size) break;
@@ -1846,6 +1862,8 @@ namespace M1TE2
                 }
                 if (max_size >= 2)
                 {
+                    Checkpoint(); // loading a palette is one undo step
+
                     for (int i = 0; i < 32; i++)
                     {
                         if (i >= max_size) break;
@@ -1904,6 +1922,8 @@ namespace M1TE2
 
                 if (max_size >= 3)
                 {
+                    Checkpoint(); // loading a palette is one undo step
+
                     for (int i = 0; i < 384; i++)
                     {
                         if (i >= max_size) break;
