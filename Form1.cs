@@ -237,6 +237,9 @@ namespace M1TE2
             // (the palette is part of the snapshot, so it may have changed)
             rebuild_pal_boxes();
 
+            // repaint the palette swatches so the preview reflects the restored colour
+            update_palette();
+
             if (map_view > 2) // fix crash if in preview mode
             {
                 common_update2();
