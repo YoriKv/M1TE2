@@ -58,6 +58,8 @@
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
             this.textBox6 = new System.Windows.Forms.TextBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.textBox7 = new System.Windows.Forms.TextBox();
             this.checkBox7 = new System.Windows.Forms.CheckBox();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -130,7 +132,6 @@
             this.x8TilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.x16TilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.forceMapsToEvenValuesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.zoomIntoQuadrantToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
@@ -141,6 +142,11 @@
             this.trackBar2 = new System.Windows.Forms.TrackBar();
             this.trackBar3 = new System.Windows.Forms.TrackBar();
             this.label8 = new System.Windows.Forms.Label();
+            this.hScrollMap = new System.Windows.Forms.HScrollBar();
+            this.vScrollMap = new System.Windows.Forms.VScrollBar();
+            this.buttonZoomIn = new System.Windows.Forms.Button();
+            this.buttonZoomOut = new System.Windows.Forms.Button();
+            this.labelZoom = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
@@ -166,7 +172,7 @@
             // pictureBox2
             // 
             this.pictureBox2.BackColor = System.Drawing.Color.LightGray;
-            this.pictureBox2.Location = new System.Drawing.Point(534, 47);
+            this.pictureBox2.Location = new System.Drawing.Point(550, 47);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(256, 256);
             this.pictureBox2.TabIndex = 2;
@@ -179,7 +185,7 @@
             // pictureBox3
             // 
             this.pictureBox3.BackColor = System.Drawing.Color.LightGray;
-            this.pictureBox3.Location = new System.Drawing.Point(534, 320);
+            this.pictureBox3.Location = new System.Drawing.Point(550, 320);
             this.pictureBox3.Name = "pictureBox3";
             this.pictureBox3.Size = new System.Drawing.Size(256, 240);
             this.pictureBox3.TabIndex = 3;
@@ -188,7 +194,7 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(607, 573);
+            this.textBox1.Location = new System.Drawing.Point(623, 597);
             this.textBox1.MaxLength = 3;
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(41, 20);
@@ -199,7 +205,7 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(674, 573);
+            this.textBox2.Location = new System.Drawing.Point(690, 597);
             this.textBox2.MaxLength = 3;
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(41, 20);
@@ -210,7 +216,7 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(741, 573);
+            this.textBox3.Location = new System.Drawing.Point(757, 597);
             this.textBox3.MaxLength = 3;
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(41, 20);
@@ -222,7 +228,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(586, 575);
+            this.label1.Location = new System.Drawing.Point(602, 599);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(15, 13);
             this.label1.TabIndex = 7;
@@ -231,7 +237,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(654, 576);
+            this.label2.Location = new System.Drawing.Point(670, 600);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(15, 13);
             this.label2.TabIndex = 8;
@@ -240,7 +246,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(720, 576);
+            this.label3.Location = new System.Drawing.Point(736, 600);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(14, 13);
             this.label3.TabIndex = 9;
@@ -248,7 +254,7 @@
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(508, 573);
+            this.textBox4.Location = new System.Drawing.Point(508, 597);
             this.textBox4.MaxLength = 4;
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new System.Drawing.Size(61, 20);
@@ -260,7 +266,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(474, 576);
+            this.label4.Location = new System.Drawing.Point(474, 600);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(29, 13);
             this.label4.TabIndex = 11;
@@ -269,7 +275,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(534, 31);
+            this.label5.Location = new System.Drawing.Point(550, 31);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(38, 13);
             this.label5.TabIndex = 12;
@@ -279,7 +285,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(532, 306);
+            this.label6.Location = new System.Drawing.Point(548, 306);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(40, 13);
             this.label6.TabIndex = 13;
@@ -297,7 +303,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(702, 31);
+            this.label9.Location = new System.Drawing.Point(718, 31);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(34, 13);
             this.label9.TabIndex = 22;
@@ -306,7 +312,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(575, 31);
+            this.label10.Location = new System.Drawing.Point(591, 31);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(13, 13);
             this.label10.TabIndex = 23;
@@ -342,7 +348,7 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(215, 572);
+            this.checkBox1.Location = new System.Drawing.Point(215, 596);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(53, 17);
             this.checkBox1.TabIndex = 27;
@@ -353,7 +359,7 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(288, 572);
+            this.checkBox2.Location = new System.Drawing.Point(288, 596);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(52, 17);
             this.checkBox2.TabIndex = 28;
@@ -364,7 +370,7 @@
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(360, 572);
+            this.checkBox3.Location = new System.Drawing.Point(360, 596);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(99, 17);
             this.checkBox3.TabIndex = 29;
@@ -376,7 +382,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(105, 575);
+            this.label14.Location = new System.Drawing.Point(105, 599);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(40, 13);
             this.label14.TabIndex = 30;
@@ -384,7 +390,7 @@
             // 
             // textBox5
             // 
-            this.textBox5.Location = new System.Drawing.Point(151, 571);
+            this.textBox5.Location = new System.Drawing.Point(151, 595);
             this.textBox5.MaxLength = 1;
             this.textBox5.Name = "textBox5";
             this.textBox5.Size = new System.Drawing.Size(38, 20);
@@ -395,7 +401,7 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(13, 573);
+            this.checkBox4.Location = new System.Drawing.Point(13, 597);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(77, 17);
             this.checkBox4.TabIndex = 32;
@@ -406,7 +412,7 @@
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(170, 608);
+            this.checkBox5.Location = new System.Drawing.Point(170, 632);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(82, 17);
             this.checkBox5.TabIndex = 33;
@@ -417,7 +423,7 @@
             // checkBox6
             // 
             this.checkBox6.AutoSize = true;
-            this.checkBox6.Location = new System.Drawing.Point(265, 608);
+            this.checkBox6.Location = new System.Drawing.Point(265, 632);
             this.checkBox6.Name = "checkBox6";
             this.checkBox6.Size = new System.Drawing.Size(81, 17);
             this.checkBox6.TabIndex = 34;
@@ -428,26 +434,45 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(12, 610);
+            this.label15.Location = new System.Drawing.Point(12, 634);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(92, 13);
             this.label15.TabIndex = 35;
-            this.label15.Text = "Map Height (1-32)";
-            // 
+            this.label15.Text = "Map Height (1-64)";
+            //
             // textBox6
-            // 
-            this.textBox6.Location = new System.Drawing.Point(110, 606);
+            //
+            this.textBox6.Location = new System.Drawing.Point(110, 630);
             this.textBox6.MaxLength = 2;
             this.textBox6.Name = "textBox6";
             this.textBox6.Size = new System.Drawing.Size(38, 20);
             this.textBox6.TabIndex = 36;
             this.textBox6.Text = "28";
             this.textBox6.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox6_KeyPress);
-            // 
+            //
+            // label16
+            //
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(158, 634);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(92, 13);
+            this.label16.TabIndex = 37;
+            this.label16.Text = "Map Width (32/64)";
+            //
+            // textBox7
+            //
+            this.textBox7.Location = new System.Drawing.Point(256, 630);
+            this.textBox7.MaxLength = 2;
+            this.textBox7.Name = "textBox7";
+            this.textBox7.Size = new System.Drawing.Size(38, 20);
+            this.textBox7.TabIndex = 38;
+            this.textBox7.Text = "32";
+            this.textBox7.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox7_KeyPress);
+            //
             // checkBox7
-            // 
+            //
             this.checkBox7.AutoSize = true;
-            this.checkBox7.Location = new System.Drawing.Point(361, 608);
+            this.checkBox7.Location = new System.Drawing.Point(361, 632);
             this.checkBox7.Name = "checkBox7";
             this.checkBox7.Size = new System.Drawing.Size(83, 17);
             this.checkBox7.TabIndex = 37;
@@ -536,14 +561,14 @@
             // 
             this.saveMapToolStripMenuItem.Name = "saveMapToolStripMenuItem";
             this.saveMapToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
-            this.saveMapToolStripMenuItem.Text = "Save a 32x32 Map";
+            this.saveMapToolStripMenuItem.Text = "Save a Map (W x H)";
             this.saveMapToolStripMenuItem.Click += new System.EventHandler(this.saveMapToolStripMenuItem_Click);
             // 
             // saveAMap32xHtToolStripMenuItem
             // 
             this.saveAMap32xHtToolStripMenuItem.Name = "saveAMap32xHtToolStripMenuItem";
             this.saveAMap32xHtToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
-            this.saveAMap32xHtToolStripMenuItem.Text = "Save a 32xHeight Map";
+            this.saveAMap32xHtToolStripMenuItem.Text = "Save a Map (W x Height)";
             this.saveAMap32xHtToolStripMenuItem.Click += new System.EventHandler(this.saveAMap32xHtToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
@@ -878,7 +903,7 @@
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(804, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(824, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -1009,8 +1034,7 @@
             this.tilesizeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.x8TilesToolStripMenuItem,
             this.x16TilesToolStripMenuItem,
-            this.forceMapsToEvenValuesToolStripMenuItem,
-            this.zoomIntoQuadrantToolStripMenuItem});
+            this.forceMapsToEvenValuesToolStripMenuItem});
             this.tilesizeToolStripMenuItem.Name = "tilesizeToolStripMenuItem";
             this.tilesizeToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
             this.tilesizeToolStripMenuItem.Text = "Tilesize";
@@ -1037,18 +1061,11 @@
             this.forceMapsToEvenValuesToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
             this.forceMapsToEvenValuesToolStripMenuItem.Text = "Force Maps to Even Values";
             this.forceMapsToEvenValuesToolStripMenuItem.Click += new System.EventHandler(this.forceMapsToEvenValuesToolStripMenuItem_Click);
-            // 
-            // zoomIntoQuadrantToolStripMenuItem
-            // 
-            this.zoomIntoQuadrantToolStripMenuItem.Name = "zoomIntoQuadrantToolStripMenuItem";
-            this.zoomIntoQuadrantToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
-            this.zoomIntoQuadrantToolStripMenuItem.Text = "Zoom into Quadrant";
-            this.zoomIntoQuadrantToolStripMenuItem.Click += new System.EventHandler(this.zoomIntoQuadrantToolStripMenuItem_Click);
-            // 
+            //
             // button1
             // 
             this.button1.BackColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(477, 604);
+            this.button1.Location = new System.Drawing.Point(477, 628);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(92, 23);
             this.button1.TabIndex = 38;
@@ -1107,7 +1124,7 @@
             // trackBar1
             // 
             this.trackBar1.LargeChange = 4;
-            this.trackBar1.Location = new System.Drawing.Point(589, 599);
+            this.trackBar1.Location = new System.Drawing.Point(605, 623);
             this.trackBar1.Maximum = 31;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(64, 45);
@@ -1119,7 +1136,7 @@
             // trackBar2
             // 
             this.trackBar2.LargeChange = 4;
-            this.trackBar2.Location = new System.Drawing.Point(657, 599);
+            this.trackBar2.Location = new System.Drawing.Point(673, 623);
             this.trackBar2.Maximum = 31;
             this.trackBar2.Name = "trackBar2";
             this.trackBar2.Size = new System.Drawing.Size(64, 45);
@@ -1131,7 +1148,7 @@
             // trackBar3
             // 
             this.trackBar3.LargeChange = 4;
-            this.trackBar3.Location = new System.Drawing.Point(725, 599);
+            this.trackBar3.Location = new System.Drawing.Point(741, 623);
             this.trackBar3.Maximum = 31;
             this.trackBar3.Name = "trackBar3";
             this.trackBar3.Size = new System.Drawing.Size(64, 45);
@@ -1143,17 +1160,73 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(624, 31);
+            this.label8.Location = new System.Drawing.Point(640, 31);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(24, 13);
             this.label8.TabIndex = 46;
             this.label8.Text = "8x8";
-            // 
+            //
+            // hScrollMap
+            //
+            this.hScrollMap.Enabled = false;
+            this.hScrollMap.Location = new System.Drawing.Point(12, 560);
+            this.hScrollMap.Name = "hScrollMap";
+            this.hScrollMap.Size = new System.Drawing.Size(512, 17);
+            this.hScrollMap.TabIndex = 60;
+            this.hScrollMap.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollMap_Scroll);
+            //
+            // vScrollMap
+            //
+            this.vScrollMap.Enabled = false;
+            this.vScrollMap.Location = new System.Drawing.Point(525, 47);
+            this.vScrollMap.Name = "vScrollMap";
+            this.vScrollMap.Size = new System.Drawing.Size(17, 512);
+            this.vScrollMap.TabIndex = 61;
+            this.vScrollMap.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollMap_Scroll);
+            //
+            // buttonZoomIn
+            //
+            this.buttonZoomIn.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.buttonZoomIn.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.buttonZoomIn.Location = new System.Drawing.Point(262, 27);
+            this.buttonZoomIn.Name = "buttonZoomIn";
+            this.buttonZoomIn.Size = new System.Drawing.Size(20, 20);
+            this.buttonZoomIn.TabIndex = 62;
+            this.buttonZoomIn.Text = "+";
+            this.buttonZoomIn.UseVisualStyleBackColor = true;
+            this.buttonZoomIn.Click += new System.EventHandler(this.buttonZoomIn_Click);
+            //
+            // buttonZoomOut
+            //
+            this.buttonZoomOut.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.buttonZoomOut.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.buttonZoomOut.Location = new System.Drawing.Point(288, 27);
+            this.buttonZoomOut.Name = "buttonZoomOut";
+            this.buttonZoomOut.Size = new System.Drawing.Size(20, 20);
+            this.buttonZoomOut.TabIndex = 63;
+            this.buttonZoomOut.Text = "−";
+            this.buttonZoomOut.UseVisualStyleBackColor = true;
+            this.buttonZoomOut.Click += new System.EventHandler(this.buttonZoomOut_Click);
+            //
+            // labelZoom
+            //
+            this.labelZoom.AutoSize = true;
+            this.labelZoom.Location = new System.Drawing.Point(314, 31);
+            this.labelZoom.Name = "labelZoom";
+            this.labelZoom.Size = new System.Drawing.Size(18, 13);
+            this.labelZoom.TabIndex = 64;
+            this.labelZoom.Text = "1x";
+            //
             // Form1
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(804, 642);
+            this.ClientSize = new System.Drawing.Size(824, 680);
+            this.Controls.Add(this.labelZoom);
+            this.Controls.Add(this.buttonZoomOut);
+            this.Controls.Add(this.buttonZoomIn);
+            this.Controls.Add(this.vScrollMap);
+            this.Controls.Add(this.hScrollMap);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.trackBar3);
             this.Controls.Add(this.trackBar2);
@@ -1164,6 +1237,8 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.checkBox7);
+            this.Controls.Add(this.textBox7);
+            this.Controls.Add(this.label16);
             this.Controls.Add(this.textBox6);
             this.Controls.Add(this.label15);
             this.Controls.Add(this.checkBox6);
@@ -1198,7 +1273,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1000, 800);
-            this.MinimumSize = new System.Drawing.Size(820, 680);
+            this.MinimumSize = new System.Drawing.Size(840, 718);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "M1TE - SNES Mode 1 Tile Editor ver 3.7";
@@ -1247,7 +1322,14 @@
         private System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.TextBox textBox6;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.CheckBox checkBox7;
+        private System.Windows.Forms.HScrollBar hScrollMap;
+        private System.Windows.Forms.VScrollBar vScrollMap;
+        private System.Windows.Forms.Button buttonZoomIn;
+        private System.Windows.Forms.Button buttonZoomOut;
+        private System.Windows.Forms.Label labelZoom;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
@@ -1327,7 +1409,6 @@
         private System.Windows.Forms.ToolStripMenuItem x16TilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem forceMapsToEvenValuesToolStripMenuItem;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.ToolStripMenuItem zoomIntoQuadrantToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem multiSelectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mapEditToolStripMenuItem;
     }

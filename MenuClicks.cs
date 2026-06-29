@@ -34,7 +34,7 @@ namespace M1TE2
             // note, we are ignoring the header, maybe change later
             // all sizes are fixed for now
 
-            byte[] big_array = new byte[55568];
+            byte[] big_array = new byte[74000];
             int temp = 0;
             int[] bit1 = new int[8]; // bit planes
             int[] bit2 = new int[8];
@@ -57,22 +57,28 @@ namespace M1TE2
 
             { // scope for the file stream
                 System.IO.FileStream fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-                if (fs.Length == 55568)
+                if (fs.Length == 55568 || fs.Length == 74000)
                 {
-                    for (int i = 0; i < 55568; i++)
+                    int file_size = (int)fs.Length;
+                    bool v2 = (file_size == 74000); // v2 = variable width/height, full 64x64 maps
+                    for (int i = 0; i < file_size; i++)
                     {
                         big_array[i] = (byte)fs.ReadByte();
                     }
 
                     if ((big_array[0] == (byte)'M') && (big_array[1] == (byte)'1'))
                     {
-                        //copy the map height
+                        //copy the map width + height (v1 files are always 32 wide)
+                        map_width = v2 ? big_array[9] : 32;
+                        if (map_width != 32 && map_width != 64) map_width = 32;
                         map_height = big_array[7];
-                        if((map_height < 1) || (map_height > 32))
+                        int max_h = v2 ? 64 : 32;
+                        if((map_height < 1) || (map_height > max_h))
                         {
-                            map_height = 32;
+                            map_height = max_h;
                         }
                         textBox6.Text = map_height.ToString();
+                        SyncWidthBox();
 
                         tilesize = big_array[8];
                         if(tilesize == TILE_8X8)
@@ -109,21 +115,48 @@ namespace M1TE2
                         rebuild_pal_boxes();
 
                         //copy the tile maps
-                        for (int i = 0; i < 32 * 32 * 3; i++)
+                        // clear all cells first (so a 32-wide map's unused margin is blank)
+                        for (int i = 0; i < Maps.LAYER * 3; i++)
                         {
-                            temp1 = big_array[offset++];
-                            temp2 = big_array[offset++];
-                            byte weird_byte = (byte)temp2;
-                            int tile = temp1 + ((weird_byte & 3) << 8);
-                            Maps.tile[i] = tile;
-                            int pal = (weird_byte >> 2) & 7;
-                            Maps.palette[i] = pal;
-                            int pri = (weird_byte >> 5) & 1;
-                            Maps.priority[i] = pri;
-                            int h_flip = (weird_byte >> 6) & 1;
-                            Maps.h_flip[i] = h_flip;
-                            int v_flip = (weird_byte >> 7) & 1;
-                            Maps.v_flip[i] = v_flip;
+                            Maps.tile[i] = 0; Maps.palette[i] = 0; Maps.priority[i] = 0;
+                            Maps.h_flip[i] = 0; Maps.v_flip[i] = 0;
+                        }
+                        if (v2)
+                        {
+                            // v2: the full 64x64 x 3 arrays are stored verbatim (stride 64)
+                            for (int i = 0; i < Maps.LAYER * 3; i++)
+                            {
+                                temp1 = big_array[offset++];
+                                temp2 = big_array[offset++];
+                                byte wb = (byte)temp2;
+                                Maps.tile[i] = temp1 + ((wb & 3) << 8);
+                                Maps.palette[i] = (wb >> 2) & 7;
+                                Maps.priority[i] = (wb >> 5) & 1;
+                                Maps.h_flip[i] = (wb >> 6) & 1;
+                                Maps.v_flip[i] = (wb >> 7) & 1;
+                            }
+                        }
+                        else
+                        {
+                            // v1: 3 layers of packed 32x32, placed into the stride-64 grid
+                            for (int layer = 0; layer < 3; layer++)
+                            {
+                                for (int y = 0; y < 32; y++)
+                                {
+                                    for (int x = 0; x < 32; x++)
+                                    {
+                                        temp1 = big_array[offset++];
+                                        temp2 = big_array[offset++];
+                                        byte wb = (byte)temp2;
+                                        int idx = Maps.Idx(layer, x, y);
+                                        Maps.tile[idx] = temp1 + ((wb & 3) << 8);
+                                        Maps.palette[idx] = (wb >> 2) & 7;
+                                        Maps.priority[idx] = (wb >> 5) & 1;
+                                        Maps.h_flip[idx] = (wb >> 6) & 1;
+                                        Maps.v_flip[idx] = (wb >> 7) & 1;
+                                    }
+                                }
+                            }
                         }
 
                         // copy the 4bpp tile sets
@@ -186,7 +219,7 @@ namespace M1TE2
                         }
                         if (map_view < 3)
                         {
-                            if (Maps.priority[map_view * 32 * 32] == 0) checkBox3.Checked = false;
+                            if (Maps.priority[map_view * Maps.LAYER] == 0) checkBox3.Checked = false;
                             else checkBox3.Checked = true;
                         }
                         else checkBox3.Checked = false;
@@ -246,7 +279,7 @@ namespace M1TE2
             }
             else if(map_view == 1)
             {
-                offset = 32 * 32;
+                offset = Maps.LAYER;
                 if (Maps.priority[offset] == 0)
                 {
                     checkBox3.Checked = false;
@@ -260,7 +293,7 @@ namespace M1TE2
             }
             else if (map_view == 2)
             {
-                offset = 2 * 32 * 32;
+                offset = 2 * Maps.LAYER;
                 if (Maps.priority[offset] == 0)
                 {
                     checkBox3.Checked = false;
@@ -274,7 +307,7 @@ namespace M1TE2
             }
 
             // make entire map conform
-            for (int i = 0; i < 32 * 32; i++)
+            for (int i = 0; i < Maps.LAYER; i++)
             {
                 Maps.priority[offset++] = fill_val;
             }
@@ -285,7 +318,7 @@ namespace M1TE2
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         { // FILE / SAVE SESSION
 
-            byte[] big_array = new byte[55568];
+            byte[] big_array = new byte[74000];
             int temp, count;
             int[] bit1 = new int[8]; // bit planes
             int[] bit2 = new int[8];
@@ -294,17 +327,18 @@ namespace M1TE2
 
             big_array[0] = (byte)'M';
             big_array[1] = (byte)'1';
-            big_array[2] = 1; // M1 file version
+            big_array[2] = 2; // M1 file version (2 = variable width/height, full 64x64 maps)
             big_array[3] = 1; // # palettes (of 128 colors)
             big_array[4] = 3; // # maps
             big_array[5] = 4; // # 4bpp tilesets
             big_array[6] = 4; // # 2bpp tilesets
             big_array[7] = (byte)map_height; // save map height
-            big_array[8] = (byte)tilesize; // save map height
+            big_array[8] = (byte)tilesize;   // save tile size
+            big_array[9] = (byte)map_width;  // save map width (v2)
 
-            // I don't use these values currently, but maybe will later.
+            // bytes 10-15 reserved for future use
 
-            for (int i = 9; i < 16; i++)
+            for (int i = 10; i < 16; i++)
             {
                 big_array[i] = 0;
             }
@@ -317,7 +351,7 @@ namespace M1TE2
                 big_array[count++] = (byte)((temp >> 8) & 0x7f); // 15 bit palette
             }
 
-            for (int i = 0; i < 32 * 32 * 3; i++) // 3 background maps
+            for (int i = 0; i < Maps.LAYER * 3; i++) // 3 background maps (full stride-64 arrays)
             {
                 big_array[count++] = (byte)(Maps.tile[i] & 0xff); // the low byte
                 temp = ((Maps.tile[i] >> 8) & 3) + ((Maps.palette[i] & 7) << 2) +
@@ -396,7 +430,7 @@ namespace M1TE2
             if (saveFileDialog1.FileName != "")
             {
                 System.IO.FileStream fs = (System.IO.FileStream)saveFileDialog1.OpenFile();
-                for (int i = 0; i < 55568; i++)
+                for (int i = 0; i < 74000; i++)
                 {
                     fs.WriteByte(big_array[i]);
                 }
@@ -452,6 +486,98 @@ namespace M1TE2
 
         // MAPS **************************************************
 
+        // ---- SNES tilemap (.map) serialization helpers --------------------
+        // A .map is a raw array of 16-bit SNES tilemap entries (vhopppcc cccccccc)
+        // laid out in hardware "screen-block" order: the map is split into 32x32
+        // tile screens stored SC0,SC1,SC2,SC3 = TL,TR,BL,BR (screenIndex =
+        // sx + sy*(width/32), sx varies fastest), each screen row-major 32x32.
+        // For a 32-wide map this is identical to plain row-major; for a 64-wide
+        // map it is the left 32x32 block then the right 32x32 block (matches the
+        // way the SNES PPU + the YI cart store a doubleWidth BG tilemap in VRAM).
+
+        // encode the cell at layer-relative index idx into 2 little-endian bytes
+        private void EncodeCell(int idx, byte[] outb, int p)
+        {
+            outb[p] = (byte)(Maps.tile[idx] & 0xff);
+            int hi = ((Maps.tile[idx] >> 8) & 3) | ((Maps.palette[idx] & 7) << 2)
+                   | ((Maps.priority[idx] & 1) << 5) | ((Maps.h_flip[idx] & 1) << 6)
+                   | ((Maps.v_flip[idx] & 1) << 7);
+            outb[p + 1] = (byte)hi;
+        }
+
+        // decode 2 little-endian bytes into the cell at layer-relative index idx
+        private void DecodeCell(int idx, byte lo, byte hi)
+        {
+            Maps.tile[idx] = lo + ((hi & 3) << 8);
+            Maps.palette[idx] = (hi >> 2) & 7;
+            Maps.priority[idx] = (hi >> 5) & 1;
+            Maps.h_flip[idx] = (hi >> 6) & 1;
+            Maps.v_flip[idx] = (hi >> 7) & 1;
+        }
+
+        // serialize the active map_width x map_height region of `layer` to bytes,
+        // in SNES screen-block order
+        private byte[] PackScreenBlock(int layer)
+        {
+            int sxN = (map_width + 31) / 32;   // 1 (32 wide) or 2 (64 wide)
+            int syN = (map_height + 31) / 32;  // 1 or 2
+            byte[] outb = new byte[map_width * map_height * 2];
+            int p = 0;
+            for (int sy = 0; sy < syN; sy++)
+                for (int sx = 0; sx < sxN; sx++)
+                    for (int r = 0; r < 32; r++)
+                    {
+                        int y = sy * 32 + r;
+                        if (y >= map_height) continue;
+                        for (int c = 0; c < 32; c++)
+                        {
+                            int x = sx * 32 + c;
+                            if (x >= map_width) continue;
+                            EncodeCell(Maps.Idx(layer, x, y), outb, p);
+                            p += 2;
+                        }
+                    }
+            return outb;
+        }
+
+        // deserialize `n` bytes of screen-block .map data into the active
+        // map_width x map_height region of `layer`
+        private void UnpackScreenBlock(byte[] data, int n, int layer)
+        {
+            int sxN = (map_width + 31) / 32;
+            int syN = (map_height + 31) / 32;
+            int p = 0;
+            for (int sy = 0; sy < syN; sy++)
+                for (int sx = 0; sx < sxN; sx++)
+                    for (int r = 0; r < 32; r++)
+                    {
+                        int y = sy * 32 + r;
+                        if (y >= map_height) continue;
+                        for (int c = 0; c < 32; c++)
+                        {
+                            int x = sx * 32 + c;
+                            if (x >= map_width) continue;
+                            if (p + 1 >= n) return;
+                            DecodeCell(Maps.Idx(layer, x, y), data[p], data[p + 1]);
+                            p += 2;
+                        }
+                    }
+        }
+
+        // zero one whole layer (all 64x64 cells, including the unused margin)
+        private void ClearLayer(int layer)
+        {
+            int b = layer * Maps.LAYER;
+            for (int i = 0; i < Maps.LAYER; i++)
+            {
+                Maps.tile[b + i] = 0;
+                Maps.palette[b + i] = 0;
+                Maps.priority[b + i] = 0;
+                Maps.h_flip[b + i] = 0;
+                Maps.v_flip[b + i] = 0;
+            }
+        }
+
         private void loadMapToolStripMenuItem_Click(object sender, EventArgs e)
         { // MAPS / LOAD A MAP
             if (map_view > 2)
@@ -460,59 +586,42 @@ namespace M1TE2
                 return;
             }
 
-            byte[] map_array = new byte[2 * 32 * 32]; // 128 entries * 2 bytes, little endian
+            int max_bytes = map_width * map_height * 2;
+            byte[] map_array = new byte[max_bytes];
             int map_size;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Title = "Select a Tile Map";
+            openFileDialog1.Title = "Select a Tile Map (" + map_width + "x" + map_height + ", screen-block)";
             openFileDialog1.Filter = "Tile Map (*.map)|*.map|All files (*.*)|*.*";
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 Checkpoint();
-                
+
                 System.IO.FileStream fs = (System.IO.FileStream)openFileDialog1.OpenFile();
 
                 if (fs.Length < 2)
                 {
-                    MessageBox.Show("File size error. Expected 2 - 2048 bytes.",
+                    MessageBox.Show("File size error. Expected 2 - " + max_bytes + " bytes.",
                     "File size error", MessageBoxButtons.OK);
                 }
                 else
                 {
                     map_size = (int)fs.Length; // how many bytes we need to copy
-                    if (fs.Length > 0x800) map_size = 0x800;
+                    if (map_size > max_bytes) map_size = max_bytes;
                     map_size = map_size & 0xfffe; // should be even
 
+                    for (int i = 0; i < map_size; i++)
                     {
-                        for (int i = 0; i < map_size; i++)
-                        {
-                            map_array[i] = (byte)fs.ReadByte();
-                        }
-
-                        int offset = map_view * 32 * 32;
-
-                        //copy it here
-                        //int half_size = map_size / 2;
-                        for (int i = 0; i < map_size; i += 2)
-                        {
-                            byte weird_byte = map_array[i + 1];
-                            int tile = map_array[i] + ((weird_byte & 3) << 8);
-                            Maps.tile[offset] = tile;
-                            int pal = (weird_byte >> 2) & 7;
-                            Maps.palette[offset] = pal;
-                            int pri = (weird_byte >> 5) & 1;
-                            Maps.priority[offset] = pri;
-                            int h_flip = (weird_byte >> 6) & 1;
-                            Maps.h_flip[offset] = h_flip;
-                            int v_flip = (weird_byte >> 7) & 1;
-                            Maps.v_flip[offset] = v_flip;
-                            offset++;
-                        }
-
-                        // make all the priority bits are the same.
-                        conformPriorities();
+                        map_array[i] = (byte)fs.ReadByte();
                     }
+
+                    // unpack the hardware screen-block layout into the active layer
+                    ClearLayer(map_view);
+                    UnpackScreenBlock(map_array, map_size, map_view);
+
+                    // make all the priority bits are the same.
+                    conformPriorities();
                 }
 
                 fs.Close();
@@ -533,7 +642,8 @@ namespace M1TE2
                 return;
             }
 
-            byte[] map_array = new byte[2 * 32 * 32]; // 128 entries * 2 bytes, little endian
+            int max_bytes = map_width * map_height * 2;
+            byte[] map_array = new byte[max_bytes];
             int map_size;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
@@ -548,46 +658,34 @@ namespace M1TE2
 
                 if (fs.Length < 2)
                 {
-                    MessageBox.Show("File size error. Expected 2 - 2048 bytes.",
+                    MessageBox.Show("File size error.",
                     "File size error", MessageBoxButtons.OK);
                 }
                 else
                 {
                     map_size = (int)fs.Length; // how many bytes we need to copy
-                    if (fs.Length > 0x800) map_size = 0x800;
+                    if (map_size > max_bytes) map_size = max_bytes;
                     map_size = map_size & 0xfffe; // should be even
 
+                    for (int i = 0; i < map_size; i++)
                     {
-                        for (int i = 0; i < map_size; i++)
-                        {
-                            map_array[i] = (byte)fs.ReadByte();
-                        }
-
-                        int offset = (map_view * 32 * 32) + (32 * active_map_y);
-                        int too_far = ((map_view + 1) * 32 * 32);
-
-                        //copy it here
-                        //int half_size = map_size / 2;
-                        for (int i = 0; i < map_size; i += 2)
-                        {
-                            byte weird_byte = map_array[i + 1];
-                            int tile = map_array[i] + ((weird_byte & 3) << 8);
-                            Maps.tile[offset] = tile;
-                            int pal = (weird_byte >> 2) & 7;
-                            Maps.palette[offset] = pal;
-                            int pri = (weird_byte >> 5) & 1;
-                            Maps.priority[offset] = pri;
-                            int h_flip = (weird_byte >> 6) & 1;
-                            Maps.h_flip[offset] = h_flip;
-                            int v_flip = (weird_byte >> 7) & 1;
-                            Maps.v_flip[offset] = v_flip;
-                            offset++;
-                            if (offset >= too_far) break;
-                        }
-
-                        // make all the priority bits are the same.
-                        conformPriorities();
+                        map_array[i] = (byte)fs.ReadByte();
                     }
+
+                    // insert a map_width-wide row-major strip starting at active_map_y
+                    int entries = map_size / 2;
+                    int p = 0;
+                    for (int ei = 0; ei < entries; ei++)
+                    {
+                        int y = active_map_y + (ei / map_width);
+                        if (y >= map_height) break;
+                        int idx = Maps.Idx(map_view, ei % map_width, y);
+                        DecodeCell(idx, map_array[p], map_array[p + 1]);
+                        p += 2;
+                    }
+
+                    // make all the priority bits are the same.
+                    conformPriorities();
                 }
 
                 fs.Close();
@@ -609,7 +707,8 @@ namespace M1TE2
                 return;
             }
 
-            byte[] map_array = new byte[2 * 32 * 32]; // 128 entries * 2 bytes, little endian
+            int max_bytes = map_width * map_height * 2;
+            byte[] map_array = new byte[max_bytes];
             int map_size;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
@@ -624,49 +723,39 @@ namespace M1TE2
 
                 if (fs.Length < 2)
                 {
-                    MessageBox.Show("File size error. Expected 2 - 2048 bytes.",
+                    MessageBox.Show("File size error.",
                     "File size error", MessageBoxButtons.OK);
                 }
                 else
                 {
                     tile_num = (tile_y * 16) + tile_x;
                     int tile_offset = tile_num + ((tile_set & 3) * 256);
-                    
+
                     map_size = (int)fs.Length; // how many bytes we need to copy
-                    if (fs.Length > 0x800) map_size = 0x800;
+                    if (map_size > max_bytes) map_size = max_bytes;
                     map_size = map_size & 0xfffe; // should be even
 
+                    for (int i = 0; i < map_size; i++)
                     {
-                        for (int i = 0; i < map_size; i++)
-                        {
-                            map_array[i] = (byte)fs.ReadByte();
-                        }
-
-                        int offset = (map_view * 32 * 32) + (32 * active_map_y);
-                        int too_far = ((map_view + 1) * 32 * 32);
-
-                        //copy it here
-                        for (int i = 0; i < map_size; i += 2)
-                        {
-                            byte weird_byte = map_array[i + 1];
-                            int tile = map_array[i] + ((weird_byte & 3) << 8);
-                            Maps.tile[offset] = (tile + tile_offset) & 0x3ff; 
-                              // add the tile offset, can't be higher than 1023 (3ff)
-                            int pal = (weird_byte >> 2) & 7;
-                            Maps.palette[offset] = pal;
-                            int pri = (weird_byte >> 5) & 1;
-                            Maps.priority[offset] = pri;
-                            int h_flip = (weird_byte >> 6) & 1;
-                            Maps.h_flip[offset] = h_flip;
-                            int v_flip = (weird_byte >> 7) & 1;
-                            Maps.v_flip[offset] = v_flip;
-                            offset++;
-                            if (offset >= too_far) break;
-                        }
-
-                        // make all the priority bits are the same.
-                        conformPriorities();
+                        map_array[i] = (byte)fs.ReadByte();
                     }
+
+                    // insert a map_width-wide row-major strip at active_map_y, offsetting tiles
+                    int entries = map_size / 2;
+                    int p = 0;
+                    for (int ei = 0; ei < entries; ei++)
+                    {
+                        int y = active_map_y + (ei / map_width);
+                        if (y >= map_height) break;
+                        int idx = Maps.Idx(map_view, ei % map_width, y);
+                        DecodeCell(idx, map_array[p], map_array[p + 1]);
+                        // add the tile offset, can't be higher than 1023 (3ff)
+                        Maps.tile[idx] = (Maps.tile[idx] + tile_offset) & 0x3ff;
+                        p += 2;
+                    }
+
+                    // make all the priority bits are the same.
+                    conformPriorities();
                 }
 
                 fs.Close();
@@ -972,25 +1061,13 @@ namespace M1TE2
                 return;
             }
 
-            byte[] map_array = new byte[2048]; // 2 bytes * 32 * 32
-            int temp, offset;
-
-            offset = (map_view * 32 * 32);
-            for (int i = 0; i < 1024; i++)
-            {
-                map_array[(i * 2)] = (byte)(Maps.tile[offset] & 0xff); // the low byte
-                temp = ((Maps.tile[offset] >> 8) & 3) + ((Maps.palette[offset] & 7) << 2) +
-                    ((Maps.priority[offset] & 1) << 5) + ((Maps.h_flip[offset] & 1) << 6) +
-                    ((Maps.v_flip[offset] & 1) << 7); // mishmash of weird bits
-                // VHoP PPcc
-                // VH flip, o priority, palette, upper 2 bits of tile number
-                map_array[(i * 2) + 1] = (byte)temp;
-                offset++;
-            }
+            // serialize the active layer in hardware screen-block order
+            byte[] map_array = PackScreenBlock(map_view);
+            int map_bytes = map_array.Length;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "Tile Map (*.map)|*.map|RLE File (*.rle)|*.rle";
-            saveFileDialog1.Title = "Save a Tile Map 32x32";
+            saveFileDialog1.Title = "Save a Tile Map " + map_width + "x" + map_height;
             saveFileDialog1.ShowDialog();
 
             if (saveFileDialog1.FileName != "")
@@ -1000,7 +1077,7 @@ namespace M1TE2
                 string ext = System.IO.Path.GetExtension(saveFileDialog1.FileName);
                 if(ext == ".map")
                 {
-                    for (int i = 0; i < 2048; i++)
+                    for (int i = 0; i < map_bytes; i++)
                     {
                         fs.WriteByte(map_array[i]);
                     }
@@ -1008,13 +1085,13 @@ namespace M1TE2
                 }
                 else if(ext == ".rle")
                 {
-                    int rle_length = convert_RLE(map_array, 2048);
+                    int rle_length = convert_RLE(map_array, map_bytes);
                     // global rle_array[] now has our compressed data
                     for (int i = 0; i < rle_length; i++)
                     {
                         fs.WriteByte(rle_array[i]);
                     }
-                    float percent = (float)rle_length / 2048;
+                    float percent = (float)rle_length / map_bytes;
                     fs.Close();
 
                     MessageBox.Show(String.Format("RLE size is {0}, or {1:P2}", rle_length, percent));
@@ -1023,9 +1100,9 @@ namespace M1TE2
                 {
                     fs.Close();
                 }
-                
+
             }
-        } // END OF SAVE 32 x 32 MAP
+        } // END OF SAVE A MAP
 
 
 
@@ -1038,33 +1115,19 @@ namespace M1TE2
                 MessageBox.Show("Select View: BG1, BG2, or BG3.");
                 return;
             }
-            if ((map_height < 1) || (map_height > 32))
+            if ((map_height < 1) || (map_height > 64))
             {
-                MessageBox.Show("Map Height needs to be 1-32");
+                MessageBox.Show("Map Height needs to be 1-64");
                 return;
             }
 
-            int size_h = map_height * 32 * 2;
-            byte[] map_array = new byte[size_h]; // 2 bytes * 32 * 32
-            int temp, offset;
-            int size_h2 = size_h / 2;
-
-            offset = (map_view * 32 * 32);
-            for (int i = 0; i < size_h2; i++)
-            {
-                map_array[(i * 2)] = (byte)(Maps.tile[offset] & 0xff); // the low byte
-                temp = ((Maps.tile[offset] >> 8) & 3) + ((Maps.palette[offset] & 7) << 2) +
-                    ((Maps.priority[offset] & 1) << 5) + ((Maps.h_flip[offset] & 1) << 6) +
-                    ((Maps.v_flip[offset] & 1) << 7); // mishmash of weird bits
-                // VHoP PPcc
-                // VH flip, o priority, palette, upper 2 bits of tile number
-                map_array[(i * 2) + 1] = (byte)temp;
-                offset++;
-            }
+            // serialize the active layer (map_width x map_height) in screen-block order
+            byte[] map_array = PackScreenBlock(map_view);
+            int size_h = map_array.Length;
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Filter = "Tile Map (*.map)|*.map|RLE File (*.rle)|*.rle";
-            saveFileDialog1.Title = "Save a Tile Map 32xHeight";
+            saveFileDialog1.Title = "Save a Tile Map " + map_width + "xHeight";
             saveFileDialog1.ShowDialog();
 
             if (saveFileDialog1.FileName != "")
@@ -1108,7 +1171,7 @@ namespace M1TE2
         { // MAPS / CLEAR ALL MAPS
             Checkpoint();
 
-            for (int i = 0; i < 3 * 32 * 32; i++)
+            for (int i = 0; i < 3 * Maps.LAYER; i++)
             {
                 Maps.tile[i] = 0;
                 Maps.palette[i] = 0;
@@ -2188,7 +2251,7 @@ namespace M1TE2
             {
                 update_tilemap();
             }
-            if (Maps.priority[32 * 32] == 0) checkBox3.Checked = false;
+            if (Maps.priority[Maps.LAYER] == 0) checkBox3.Checked = false;
             else checkBox3.Checked = true; //priority
         }
 
@@ -2225,7 +2288,7 @@ namespace M1TE2
             {
                 update_tilemap();
             }
-            if (Maps.priority[2 * 32 * 32] == 0) checkBox3.Checked = false;
+            if (Maps.priority[2 * Maps.LAYER] == 0) checkBox3.Checked = false;
             else checkBox3.Checked = true; //priority
         }
 
