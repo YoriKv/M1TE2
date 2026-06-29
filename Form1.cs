@@ -53,6 +53,9 @@ namespace M1TE2
         public static Bitmap cool_bmp = new Bitmap(256, 256); //import
         public static int pal_x, pal_y, tile_x, tile_y, tile_num, tile_set;
         public static int map_view, active_map_x, active_map_y, active_map_index;
+        // Preview overlay: render the full layer composite while still editing the
+        // active BG (map_view stays 0/1/2). 0 = off, 3 = order 1/2/3, 4 = order 3/1/2.
+        public static int preview_overlay;
         public static int map_height = 28;
         public static int map_width = 32;   // active map width in tiles (32 or 64)
         // display pixels per tile on the big map box; recomputed each redraw from
@@ -334,11 +337,11 @@ namespace M1TE2
             using (SolidBrush bg0 = new SolidBrush(Color.FromArgb(r, g, b)))
                 gbg.FillRectangle(bg0, 0, 0, map_width * 8, map_height * 8);
 
-            if (map_view > 2) // preview modes
+            if (preview_overlay != 0) // composite overlay (editing still targets map_view)
             {
                 // draw all the maps, layered, with color 0 transparent
                 // and draw them all together
-                if (map_view == 3) // 1,2,3 = draw the 3rd in the back
+                if (preview_overlay == 3) // 1,2,3 = draw the 3rd in the back
                 {
                     z2 = 2 * Maps.LAYER; // offset for current map
                     for (int y = 0; y < map_height; y++)
@@ -379,7 +382,7 @@ namespace M1TE2
                         big_sub(offset, x, y, temp_tile, temp_pal);
                     }
                 }
-                if (map_view == 4) // 3,1,2 = draw the 3rd in the front
+                if (preview_overlay == 4) // 3,1,2 = draw the 3rd in the front
                 {
                     z2 = 2 * Maps.LAYER; // offset for current map
                     for (int y = 0; y < map_height; y++)
@@ -558,11 +561,11 @@ namespace M1TE2
             using (SolidBrush bg0 = new SolidBrush(Color.FromArgb(r, g, b)))
                 gbg.FillRectangle(bg0, 0, 0, map_width * 16, map_height * 16);
 
-            if (map_view > 2) // preview modes
+            if (preview_overlay != 0) // composite overlay (editing still targets map_view)
             {
                 // draw all the maps, layered, with color 0 transparent
                 // and draw them all together
-                if (map_view == 3) // 1,2,3 = draw the 3rd in the back
+                if (preview_overlay == 3) // 1,2,3 = draw the 3rd in the back
                 {
                     z2 = 2 * Maps.LAYER; // offset for current map
                     for (int y = 0; y < map_height; y++)
@@ -603,7 +606,7 @@ namespace M1TE2
                         big_sub16(offset, x, y, temp_tile, temp_pal);
                     }
                 }
-                if (map_view == 4) // 3,1,2 = draw the 3rd in the front
+                if (preview_overlay == 4) // 3,1,2 = draw the 3rd in the front
                 {
                     z2 = 2 * Maps.LAYER; // offset for current map
                     for (int y = 0; y < map_height; y++)

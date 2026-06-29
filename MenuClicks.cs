@@ -2190,10 +2190,9 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = true;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = false;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
-            label11.Text = "BG1";
+            // preview overlay state is left untouched so it persists across BG switches
             map_view = 0; //view BG1
+            update_view_label();
             //if tile set is 2bpp, switch it to 0th
             if (tile_set > 3)
             {
@@ -2227,10 +2226,9 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = true;
             bG3ToolStripMenuItem.Checked = false;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
-            label11.Text = "BG2";
+            // preview overlay state is left untouched so it persists across BG switches
             map_view = 1; //view BG2
+            update_view_label();
             //if tile set is 2bpp, switch it to 0th
             if (tile_set > 3)
             {
@@ -2263,10 +2261,9 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = true;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
-            label11.Text = "BG3";
+            // preview overlay state is left untouched so it persists across BG switches
             map_view = 2; //view BG3 2bpp mode
+            update_view_label();
             if (pal_y > 1) pal_y = 1; // palette y selection
             //make sure correct tileset
             if (tile_set < 4)
@@ -2295,71 +2292,38 @@ namespace M1TE2
 
 
         private void previewAllToolStripMenuItem_Click(object sender, EventArgs e)
-        { // BG VIEW / preview 1/2/3
+        { // BG VIEW / Preview 1/2/3 overlay toggle (keeps editing the active BG)
 
-            bG1TopToolStripMenuItem.Checked = false;
-            bG2ToolStripMenuItem.Checked = false;
-            bG3ToolStripMenuItem.Checked = false;
-            previewAllToolStripMenuItem.Checked = true;
+            // toggle this overlay; the two preview overlays are mutually exclusive
+            preview_overlay = (preview_overlay == 3) ? 0 : 3;
+            previewAllToolStripMenuItem.Checked = (preview_overlay == 3);
             preview312ToolStripMenuItem.Checked = false;
-            label11.Text = "Preview 1/2/3";
-            map_view = 3; // preview all
-            if (newChild != null)
-            {
-                newChild.Close();
-                newChild = null;
-            }
-            if (tile_set > 3)
-            {
-                set14bppToolStripMenuItem.Checked = true;
-                set24bppToolStripMenuItem.Checked = false;
-                set34bppToolStripMenuItem.Checked = false;
-                set44bppToolStripMenuItem.Checked = false;
-                set52bppToolStripMenuItem.Checked = false;
-                set62bppToolStripMenuItem.Checked = false;
-                set72bppToolStripMenuItem.Checked = false;
-                set82bppToolStripMenuItem.Checked = false;
-                tile_set = 0;
-                label10.Text = "1";
-                update_palette();
-            }
-            common_update2(); // includes tile map
-            checkBox3.Checked = false; //priority
+            update_view_label();
+            common_update2(); // re-render the map with/without the overlay
         }
 
 
 
         private void preview312ToolStripMenuItem_Click(object sender, EventArgs e)
-        { // BG VIEW / preview 3/1/2
+        { // BG VIEW / Preview 3/1/2 overlay toggle (keeps editing the active BG)
 
-            bG1TopToolStripMenuItem.Checked = false;
-            bG2ToolStripMenuItem.Checked = false;
-            bG3ToolStripMenuItem.Checked = false;
+            // toggle this overlay; the two preview overlays are mutually exclusive
+            preview_overlay = (preview_overlay == 4) ? 0 : 4;
+            preview312ToolStripMenuItem.Checked = (preview_overlay == 4);
             previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = true;
-            label11.Text = "Preview 3/1/2";
-            map_view = 4; // preview all
-            if (newChild != null)
-            {
-                newChild.Close();
-                newChild = null;
-            }
-            if (tile_set > 3)
-            {
-                set14bppToolStripMenuItem.Checked = true;
-                set24bppToolStripMenuItem.Checked = false;
-                set34bppToolStripMenuItem.Checked = false;
-                set44bppToolStripMenuItem.Checked = false;
-                set52bppToolStripMenuItem.Checked = false;
-                set62bppToolStripMenuItem.Checked = false;
-                set72bppToolStripMenuItem.Checked = false;
-                set82bppToolStripMenuItem.Checked = false;
-                tile_set = 0;
-                label10.Text = "1";
-                update_palette();
-            }
-            common_update2(); // includes tile map
-            checkBox3.Checked = false; //priority
+            update_view_label();
+            common_update2(); // re-render the map with/without the overlay
+        }
+
+
+
+        // Refresh the view label (label11) to show the active BG and any preview overlay.
+        public void update_view_label()
+        {
+            string s = "BG" + (map_view + 1);
+            if (preview_overlay == 3) s += " + Preview 1/2/3";
+            else if (preview_overlay == 4) s += " + Preview 3/1/2";
+            label11.Text = s;
         }
 
 
