@@ -60,6 +60,8 @@
             this.textBox6 = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
             this.textBox7 = new System.Windows.Forms.TextBox();
+            this.buttonSetEraseTile = new System.Windows.Forms.Button();
+            this.pictureBoxErase = new System.Windows.Forms.PictureBox();
             this.checkBox7 = new System.Windows.Forms.CheckBox();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -150,6 +152,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxErase)).BeginInit();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
@@ -468,6 +471,28 @@
             this.textBox7.TabIndex = 38;
             this.textBox7.Text = "32";
             this.textBox7.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox7_KeyPress);
+            //
+            // buttonSetEraseTile
+            //
+            this.buttonSetEraseTile.BackColor = System.Drawing.Color.White;
+            this.buttonSetEraseTile.Location = new System.Drawing.Point(302, 656);
+            this.buttonSetEraseTile.Name = "buttonSetEraseTile";
+            this.buttonSetEraseTile.Size = new System.Drawing.Size(104, 23);
+            this.buttonSetEraseTile.TabIndex = 39;
+            this.buttonSetEraseTile.Text = "Set Erase Tile";
+            this.buttonSetEraseTile.UseVisualStyleBackColor = false;
+            this.buttonSetEraseTile.Click += new System.EventHandler(this.buttonSetEraseTile_Click);
+            //
+            // pictureBoxErase
+            //
+            this.pictureBoxErase.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxErase.Location = new System.Drawing.Point(412, 654);
+            this.pictureBoxErase.Name = "pictureBoxErase";
+            this.pictureBoxErase.Size = new System.Drawing.Size(26, 26);
+            this.pictureBoxErase.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBoxErase.TabIndex = 40;
+            this.pictureBoxErase.TabStop = false;
+            this.pictureBoxErase.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxErase_MouseDown);
             //
             // checkBox7
             //
@@ -1236,6 +1261,8 @@
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
+            this.Controls.Add(this.pictureBoxErase);
+            this.Controls.Add(this.buttonSetEraseTile);
             this.Controls.Add(this.checkBox7);
             this.Controls.Add(this.textBox7);
             this.Controls.Add(this.label16);
@@ -1281,6 +1308,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxErase)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
@@ -1324,6 +1352,8 @@
         private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.TextBox textBox7;
+        private System.Windows.Forms.Button buttonSetEraseTile;
+        private System.Windows.Forms.PictureBox pictureBoxErase;
         private System.Windows.Forms.CheckBox checkBox7;
         private System.Windows.Forms.HScrollBar hScrollMap;
         private System.Windows.Forms.VScrollBar vScrollMap;

@@ -18,7 +18,7 @@ namespace M1TE2
         {
             InitializeComponent();
             this.Location = new Point(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y);
-
+            RedrawEraseTilePreview(); // show the default erase tile (0) before anything is loaded
         }
         static Form2 newChild = null;
         static Form3 newChild3 = null;
@@ -145,6 +145,14 @@ namespace M1TE2
         public static int ME_x2_c = 1; // x1,y1 = top left           
         public static int ME_y1_c = 0; // x2,y2 = bottom right
         public static int ME_y2_c = 1;
+
+        // Erase tile: the tilemap entry ME_delete writes. Default 0 == the legacy
+        // blank cell, so behaviour is unchanged until the user sets one via the
+        // "Set Erase Tile" button. Right-clicking its preview re-selects it.
+        public static int erase_tile = 0;     // combined tile index 0-1023 ((set&3)*256 + num)
+        public static int erase_palette = 0;  // palette value (same encoding as Maps.palette)
+        public static int erase_hflip = 0;
+        public static int erase_vflip = 0;
 
         public readonly int[,] BAYER_MATRIX =
         {
@@ -2286,112 +2294,114 @@ namespace M1TE2
             }
             else if (e.Button == MouseButtons.Right) // get the tile, tileset, and properties
             {
-                //map_clone_x = active_map_x;
-                //map_clone_y = active_map_y;
-
                 int tile = (map_view * Maps.LAYER) + (Maps.W * active_map_y) + active_map_x;
-                int pal = Maps.palette[tile];
-                textBox5.Text = pal.ToString();
-                if (Maps.h_flip[tile] == 0) checkBox1.Checked = false;
-                else checkBox1.Checked = true;
-                if (Maps.v_flip[tile] == 0) checkBox2.Checked = false;
-                else checkBox2.Checked = true;
-                // also adopt the tile's flip as the brush flip, so future tile
-                // placements use it (same as picking up the tile's palette)
-                checkBox5.Checked = (Maps.h_flip[tile] != 0);
-                checkBox6.Checked = (Maps.v_flip[tile] != 0);
-                int set = (Maps.tile[tile] & 0x300) >> 8;
-                int tile2 = Maps.tile[tile] & 0xff;
-                tile_x = tile2 & 0x0f;
-                tile_y = (tile2 >> 4) & 0x0f;
-                tile_num = (tile_y * 16) + tile_x;
-
-                set14bppToolStripMenuItem.Checked = false; // set them all to false
-                set24bppToolStripMenuItem.Checked = false;
-                set34bppToolStripMenuItem.Checked = false;
-                set44bppToolStripMenuItem.Checked = false;
-                set52bppToolStripMenuItem.Checked = false;
-                set62bppToolStripMenuItem.Checked = false;
-                set72bppToolStripMenuItem.Checked = false;
-                set82bppToolStripMenuItem.Checked = false;
-
-                if (map_view < 2) // the 4bpp maps
-                {
-                    pal_y = pal;
-
-                    if (set == 0)
-                    {
-                        label10.Text = "1";
-                        tile_set = 0;
-                        set14bppToolStripMenuItem.Checked = true;
-                    }
-                    else if (set == 1)
-                    {
-                        label10.Text = "2";
-                        tile_set = 1;
-                        set24bppToolStripMenuItem.Checked = true;
-                    }
-                    else if (set == 2)
-                    {
-                        label10.Text = "3";
-                        tile_set = 2;
-                        set34bppToolStripMenuItem.Checked = true;
-                    }
-                    else
-                    {
-                        label10.Text = "4";
-                        tile_set = 3;
-                        set44bppToolStripMenuItem.Checked = true;
-                    }
-                }
-                else //2bpp
-                {
-                    pal_y = pal;
-
-                    if (set == 0)
-                    {
-                        label10.Text = "5";
-                        tile_set = 4;
-                        set52bppToolStripMenuItem.Checked = true;
-                    }
-                    else if (set == 1)
-                    {
-                        label10.Text = "6";
-                        tile_set = 5;
-                        set62bppToolStripMenuItem.Checked = true;
-                    }
-                    else if (set == 2)
-                    {
-                        label10.Text = "7";
-                        tile_set = 6;
-                        set72bppToolStripMenuItem.Checked = true;
-                    }
-                    else
-                    {
-                        label10.Text = "8";
-                        tile_set = 7;
-                        set82bppToolStripMenuItem.Checked = true;
-                    }
-
-                    // was...
-                    pal_y = (pal >> 2);
-                    pal_x = (pal & 3) << 2;
-                }
-                if(brushsize == BRUSH_MULTI)
-                { // select just 1
-                    BE_x1 = tile_x;
-                    BE_x2 = BE_x1 + 1;
-                    BE_y1 = tile_y;
-                    BE_y2 = BE_y1 + 1;
-                    Tiles.Make_Box_Same();
-                }
-
-                tile_show_num(); // after tile_set is updated, so the number reflects the picked set
-                update_palette();
-                common_update2();
+                ApplyPickedTile(Maps.tile[tile], Maps.palette[tile], Maps.h_flip[tile], Maps.v_flip[tile]);
             }
 
         } // end tilemap
+
+        // Apply a picked tilemap entry as the current brush selection: set the
+        // tile / tileset / palette / flip globals and refresh the UI. Shared by the
+        // map right-click eyedropper and the erase-tile preview's right-click.
+        private void ApplyPickedTile(int tileVal, int palVal, int hflip, int vflip)
+        {
+            textBox5.Text = palVal.ToString();
+            checkBox1.Checked = (hflip != 0);
+            checkBox2.Checked = (vflip != 0);
+            // also adopt the tile's flip as the brush flip, so future tile
+            // placements use it (same as picking up the tile's palette)
+            checkBox5.Checked = (hflip != 0);
+            checkBox6.Checked = (vflip != 0);
+            int set = (tileVal & 0x300) >> 8;
+            int tile2 = tileVal & 0xff;
+            tile_x = tile2 & 0x0f;
+            tile_y = (tile2 >> 4) & 0x0f;
+            tile_num = (tile_y * 16) + tile_x;
+
+            set14bppToolStripMenuItem.Checked = false; // set them all to false
+            set24bppToolStripMenuItem.Checked = false;
+            set34bppToolStripMenuItem.Checked = false;
+            set44bppToolStripMenuItem.Checked = false;
+            set52bppToolStripMenuItem.Checked = false;
+            set62bppToolStripMenuItem.Checked = false;
+            set72bppToolStripMenuItem.Checked = false;
+            set82bppToolStripMenuItem.Checked = false;
+
+            if (map_view < 2) // the 4bpp maps
+            {
+                pal_y = palVal;
+
+                if (set == 0)
+                {
+                    label10.Text = "1";
+                    tile_set = 0;
+                    set14bppToolStripMenuItem.Checked = true;
+                }
+                else if (set == 1)
+                {
+                    label10.Text = "2";
+                    tile_set = 1;
+                    set24bppToolStripMenuItem.Checked = true;
+                }
+                else if (set == 2)
+                {
+                    label10.Text = "3";
+                    tile_set = 2;
+                    set34bppToolStripMenuItem.Checked = true;
+                }
+                else
+                {
+                    label10.Text = "4";
+                    tile_set = 3;
+                    set44bppToolStripMenuItem.Checked = true;
+                }
+            }
+            else //2bpp
+            {
+                pal_y = palVal;
+
+                if (set == 0)
+                {
+                    label10.Text = "5";
+                    tile_set = 4;
+                    set52bppToolStripMenuItem.Checked = true;
+                }
+                else if (set == 1)
+                {
+                    label10.Text = "6";
+                    tile_set = 5;
+                    set62bppToolStripMenuItem.Checked = true;
+                }
+                else if (set == 2)
+                {
+                    label10.Text = "7";
+                    tile_set = 6;
+                    set72bppToolStripMenuItem.Checked = true;
+                }
+                else
+                {
+                    label10.Text = "8";
+                    tile_set = 7;
+                    set82bppToolStripMenuItem.Checked = true;
+                }
+
+                // was...
+                pal_y = (palVal >> 2);
+                pal_x = (palVal & 3) << 2;
+            }
+            if (brushsize == BRUSH_MULTI)
+            { // select just 1
+                BE_x1 = tile_x;
+                BE_x2 = BE_x1 + 1;
+                BE_y1 = tile_y;
+                BE_y2 = BE_y1 + 1;
+                Tiles.Make_Box_Same();
+            }
+
+            tile_show_num(); // after tile_set is updated, so the number reflects the picked set
+            update_palette();
+            common_update2();
+        }
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         { // TILEMAP
@@ -2554,10 +2564,10 @@ namespace M1TE2
                 for (int x1 = ME_x1; x1 < ME_x2; x1++)
                 {
                     int index = offset + (y1 * Maps.W) + x1;
-                    Maps.tile[index] = 0;
-                    Maps.palette[index] = 0;
-                    Maps.h_flip[index] = 0;
-                    Maps.v_flip[index] = 0;
+                    Maps.tile[index] = erase_tile;
+                    Maps.palette[index] = erase_palette;
+                    Maps.h_flip[index] = erase_hflip;
+                    Maps.v_flip[index] = erase_vflip;
                     // skip priority
                 }
             }
@@ -3013,6 +3023,79 @@ namespace M1TE2
 
             update_tile_image();
             update_tilemap();
+            RedrawEraseTilePreview();
+        }
+
+        // "Set Erase Tile": capture the currently selected tile/palette/flips as the
+        // tile ME_delete will write. Stored the same way a painted tile is encoded.
+        private void buttonSetEraseTile_Click(object sender, EventArgs e)
+        {
+            int temp_set = tile_set & 3; // 0-3
+            erase_tile = tile_x + (tile_y * 16) + (256 * temp_set); // 0-1023
+            if (map_view == 2) erase_palette = (pal_y * 4) + (pal_x >> 2); // 2bpp
+            else erase_palette = pal_y;                                    // 4bpp
+            erase_hflip = checkBox5.Checked ? 1 : 0;
+            erase_vflip = checkBox6.Checked ? 1 : 0;
+            RedrawEraseTilePreview();
+            label5.Focus(); // hand focus back to the map so keyboard shortcuts work
+        }
+
+        // Right-click the erase-tile preview to re-select it in the tileset.
+        private void pictureBoxErase_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ApplyPickedTile(erase_tile, erase_palette, erase_hflip, erase_vflip);
+            }
+        }
+
+        // Render the configured erase tile into its little preview box, the way it
+        // will appear on the current BG (4bpp, or 2bpp when map_view == 2). Mirrors
+        // big_sub's tile/palette indexing.
+        public void RedrawEraseTilePreview()
+        {
+            if (pictureBoxErase == null) return;
+
+            bool is2bpp = (map_view == 2);
+            int baseIndex = (is2bpp ? (erase_tile + 0x400) : erase_tile) * 8 * 8;
+            int temp_pal = is2bpp ? (erase_palette * 4) : (erase_palette * 16);
+            Color bg = Color.FromArgb(Palettes.pal_r[0], Palettes.pal_g[0], Palettes.pal_b[0]);
+
+            using (Bitmap tile = new Bitmap(8, 8))
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    int sy = (erase_vflip != 0) ? (7 - y) : y;
+                    for (int x = 0; x < 8; x++)
+                    {
+                        int sx = (erase_hflip != 0) ? (7 - x) : x;
+                        int test = Tiles.Tile_Arrays[baseIndex + (sy * 8) + sx];
+                        Color c;
+                        if (test == 0)
+                        {
+                            c = bg; // colour 0 is the transparent/background colour
+                        }
+                        else
+                        {
+                            int color = (temp_pal + test) & 0x7f; // clamp into the 128-entry palette
+                            c = Color.FromArgb(Palettes.pal_r[color], Palettes.pal_g[color], Palettes.pal_b[color]);
+                        }
+                        tile.SetPixel(x, y, c);
+                    }
+                }
+
+                int w = pictureBoxErase.Width, h = pictureBoxErase.Height;
+                Bitmap shown = new Bitmap(w, h);
+                using (Graphics g = Graphics.FromImage(shown))
+                {
+                    g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                    g.PixelOffsetMode = PixelOffsetMode.Half;
+                    g.DrawImage(tile, 0, 0, w, h); // crisp nearest-neighbour upscale
+                }
+                Image old = pictureBoxErase.Image;
+                pictureBoxErase.Image = shown;
+                if (old != null) old.Dispose();
+            }
         }
 
 
