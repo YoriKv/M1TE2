@@ -2762,37 +2762,57 @@ namespace M1TE2
                 update_palette();
                 rebuild_pal_boxes();
             }
-            else if (e.KeyCode == Keys.D1) // number buttons
+            else if (e.Control && e.KeyCode == Keys.D1) // Ctrl + number switches the tileset
             {
                 set1_change(); // change the tileset
             }
-            else if (e.KeyCode == Keys.D2)
+            else if (e.Control && e.KeyCode == Keys.D2)
             {
                 set2_change();
             }
-            else if (e.KeyCode == Keys.D3)
+            else if (e.Control && e.KeyCode == Keys.D3)
             {
                 set3_change();
             }
-            else if (e.KeyCode == Keys.D4)
+            else if (e.Control && e.KeyCode == Keys.D4)
             {
                 set4_change();
             }
-            else if (e.KeyCode == Keys.D5)
+            else if (e.Control && e.KeyCode == Keys.D5)
             {
                 set5_change();
             }
-            else if (e.KeyCode == Keys.D6)
+            else if (e.Control && e.KeyCode == Keys.D6)
             {
                 set6_change();
             }
-            else if (e.KeyCode == Keys.D7)
+            else if (e.Control && e.KeyCode == Keys.D7)
             {
                 set7_change();
             }
-            else if (e.KeyCode == Keys.D8)
+            else if (e.Control && e.KeyCode == Keys.D8)
             {
                 set8_change();
+            }
+            else if (e.KeyCode == Keys.D1) // number keys switch the BG view
+            {
+                set_bg_view(0); // BG1
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                set_bg_view(1); // BG2
+            }
+            else if (e.KeyCode == Keys.D3)
+            {
+                set_bg_view(2); // BG3
+            }
+            else if (e.KeyCode == Keys.D4)
+            {
+                set_bg_view(3); // Preview 1/2/3
+            }
+            else if (e.KeyCode == Keys.D5)
+            {
+                set_bg_view(4); // Preview 3/1/2
             }
 
             common_update2();
@@ -2962,37 +2982,57 @@ namespace M1TE2
                 rebuild_pal_boxes();
             }
 
-            else if (e.KeyCode == Keys.D1) // number buttons
+            else if (e.Control && e.KeyCode == Keys.D1) // Ctrl + number switches the tileset
             {
                 set1_change(); // change the tileset
             }
-            else if (e.KeyCode == Keys.D2)
+            else if (e.Control && e.KeyCode == Keys.D2)
             {
                 set2_change();
             }
-            else if (e.KeyCode == Keys.D3)
+            else if (e.Control && e.KeyCode == Keys.D3)
             {
                 set3_change();
             }
-            else if (e.KeyCode == Keys.D4)
+            else if (e.Control && e.KeyCode == Keys.D4)
             {
                 set4_change();
             }
-            else if (e.KeyCode == Keys.D5)
+            else if (e.Control && e.KeyCode == Keys.D5)
             {
                 set5_change();
             }
-            else if (e.KeyCode == Keys.D6)
+            else if (e.Control && e.KeyCode == Keys.D6)
             {
                 set6_change();
             }
-            else if (e.KeyCode == Keys.D7)
+            else if (e.Control && e.KeyCode == Keys.D7)
             {
                 set7_change();
             }
-            else if (e.KeyCode == Keys.D8)
+            else if (e.Control && e.KeyCode == Keys.D8)
             {
                 set8_change();
+            }
+            else if (e.KeyCode == Keys.D1) // number keys switch the BG view
+            {
+                set_bg_view(0); // BG1
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                set_bg_view(1); // BG2
+            }
+            else if (e.KeyCode == Keys.D3)
+            {
+                set_bg_view(2); // BG3
+            }
+            else if (e.KeyCode == Keys.D4)
+            {
+                set_bg_view(3); // Preview 1/2/3
+            }
+            else if (e.KeyCode == Keys.D5)
+            {
+                set_bg_view(4); // Preview 3/1/2
             }
 
             common_update2();

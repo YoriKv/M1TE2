@@ -2364,6 +2364,22 @@ namespace M1TE2
 
 
 
+        // Switch BG view by index (0-4). Drives the 1-5 keyboard shortcuts by
+        // reusing the existing BG View menu handlers.
+        public void set_bg_view(int view)
+        {
+            switch (view)
+            {
+                case 0: bG1TopToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG1
+                case 1: bG2ToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG2
+                case 2: bG3ToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG3
+                case 3: previewAllToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview 1/2/3
+                case 4: preview312ToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview 3/1/2
+            }
+        }
+
+
+
         // TILESET **************************************************
 
         public void set1_change()

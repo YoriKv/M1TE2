@@ -558,37 +558,57 @@ namespace M1TE2
                 Form1.ME_x2 = 32;
                 Form1.ME_y2 = Form1.map_height;
             }
-            else if (e.KeyCode == Keys.D1) // number buttons
+            else if (e.Control && e.KeyCode == Keys.D1) // Ctrl + number switches the tileset
             {
                 f.set1_change(); // change the tileset
             }
-            else if (e.KeyCode == Keys.D2)
+            else if (e.Control && e.KeyCode == Keys.D2)
             {
                 f.set2_change();
             }
-            else if (e.KeyCode == Keys.D3)
+            else if (e.Control && e.KeyCode == Keys.D3)
             {
                 f.set3_change();
             }
-            else if (e.KeyCode == Keys.D4)
+            else if (e.Control && e.KeyCode == Keys.D4)
             {
                 f.set4_change();
             }
-            else if (e.KeyCode == Keys.D5)
+            else if (e.Control && e.KeyCode == Keys.D5)
             {
                 f.set5_change();
             }
-            else if (e.KeyCode == Keys.D6)
+            else if (e.Control && e.KeyCode == Keys.D6)
             {
                 f.set6_change();
             }
-            else if (e.KeyCode == Keys.D7)
+            else if (e.Control && e.KeyCode == Keys.D7)
             {
                 f.set7_change();
             }
-            else if (e.KeyCode == Keys.D8)
+            else if (e.Control && e.KeyCode == Keys.D8)
             {
                 f.set8_change();
+            }
+            else if (e.KeyCode == Keys.D1) // number keys switch the BG view
+            {
+                f.set_bg_view(0); // BG1
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                f.set_bg_view(1); // BG2
+            }
+            else if (e.KeyCode == Keys.D3)
+            {
+                f.set_bg_view(2); // BG3
+            }
+            else if (e.KeyCode == Keys.D4)
+            {
+                f.set_bg_view(3); // Preview 1/2/3
+            }
+            else if (e.KeyCode == Keys.D5)
+            {
+                f.set_bg_view(4); // Preview 3/1/2
             }
             else if (e.KeyCode == Keys.Z)
             {
@@ -729,37 +749,62 @@ namespace M1TE2
                 common_update();
             }
 
-            else if (e.KeyCode == Keys.D1) // number buttons
+            else if (e.Control && e.KeyCode == Keys.D1) // Ctrl + number switches the tileset
             {
                 f.set1_change(); // change the tileset
             }
-            else if (e.KeyCode == Keys.D2)
+            else if (e.Control && e.KeyCode == Keys.D2)
             {
                 f.set2_change();
             }
-            else if (e.KeyCode == Keys.D3)
+            else if (e.Control && e.KeyCode == Keys.D3)
             {
                 f.set3_change();
             }
-            else if (e.KeyCode == Keys.D4)
+            else if (e.Control && e.KeyCode == Keys.D4)
             {
                 f.set4_change();
             }
-            else if (e.KeyCode == Keys.D5)
+            else if (e.Control && e.KeyCode == Keys.D5)
             {
                 f.set5_change();
             }
-            else if (e.KeyCode == Keys.D6)
+            else if (e.Control && e.KeyCode == Keys.D6)
             {
                 f.set6_change();
             }
-            else if (e.KeyCode == Keys.D7)
+            else if (e.Control && e.KeyCode == Keys.D7)
             {
                 f.set7_change();
             }
-            else if (e.KeyCode == Keys.D8)
+            else if (e.Control && e.KeyCode == Keys.D8)
             {
                 f.set8_change();
+            }
+            else if (e.KeyCode == Keys.D1) // number keys switch the BG view
+            {
+                f.set_bg_view(0); // BG1
+                common_update();
+            }
+            else if (e.KeyCode == Keys.D2)
+            {
+                f.set_bg_view(1); // BG2
+                common_update();
+            }
+            else if (e.KeyCode == Keys.D3)
+            {
+                f.set_bg_view(2); // BG3
+                common_update();
+            }
+            else if (e.KeyCode == Keys.D4)
+            {
+                f.set_bg_view(3); // Preview 1/2/3
+                common_update();
+            }
+            else if (e.KeyCode == Keys.D5)
+            {
+                f.set_bg_view(4); // Preview 3/1/2
+                common_update();
             }
 
             else if (e.KeyCode == Keys.Z)
