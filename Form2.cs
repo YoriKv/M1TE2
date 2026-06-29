@@ -555,7 +555,7 @@ namespace M1TE2
             {
                 Form1.ME_x1 = 0;
                 Form1.ME_y1 = 0;
-                Form1.ME_x2 = 32;
+                Form1.ME_x2 = Form1.map_width;
                 Form1.ME_y2 = Form1.map_height;
             }
             else if (e.Control && e.KeyCode == Keys.D1) // Ctrl + number switches the tileset

@@ -1969,7 +1969,7 @@ namespace M1TE2
             { 
                 start_x = temp_x = 0;
                 temp_y = 0;
-                loop_x = 32;
+                loop_x = map_width;
                 loop_y = map_height;
             }
 
@@ -2087,56 +2087,11 @@ namespace M1TE2
                 temp_y++;
             }
 
-            // the incremental fast-redraw below assumes the whole map fits the 512
-            // canvas at the base scale; when zoomed or scrolled, fall back to a full
-            // (viewport-aware) redraw instead.
-            if (zoom_level != 1 || map_scroll_x != 0 || map_scroll_y != 0)
-            {
-                update_tilemap();
-                return;
-            }
-
-            if(tilesize == TILE_8X8)
-            {
-                //Bitmap temp_bmp2 = new Bitmap(512, 512); //resize double size
-                using (Graphics g2 = Graphics.FromImage(temp_bmp2))
-                {
-                    g2.InterpolationMode = InterpolationMode.NearestNeighbor;
-                    g2.PixelOffsetMode = PixelOffsetMode.Half; // fix bug, missing..
-                                                               // half a pixel on  top and left
-                    g2.DrawImage(image_map_local, 0, 0, 512, 512);
-                } // standard resize of bmp was blurry, this makes it sharp
-            }
-            
-
-            //draw grid here
-            if (checkBox4.Checked == true)
-            {
-                //draw horizontal lines at each 16
-                for (int i = 31; i < (map_height * 15); i += 32)
-                {
-                    for (int j = 0; j < 510; j += 2)
-                    {
-                        temp_bmp2.SetPixel(j, i, Color.Black);
-                        temp_bmp2.SetPixel(j + 1, i, Color.White);
-                    }
-                }
-                //draw vertical lines at each 16
-                for (int j = 31; j < 511; j += 32)
-                {
-                    for (int i = 0; i < (map_height * 16) - 2; i += 2)
-                    {
-                        temp_bmp2.SetPixel(j, i + 1, Color.Black);
-                        temp_bmp2.SetPixel(j, i, Color.White);
-                    }
-                }
-            }
-
-            pictureBox1.Image = temp_bmp2;
-            pictureBox1.Refresh();
-
-
-            //update_tilemap(); // moved
+            // Finalize through the single canonical, viewport-aware path so tile
+            // scaling and grid alignment are correct at any width/zoom/scroll.
+            // (Matches picbox1_sub_multi, which also redraws the whole map.) The
+            // per-tile draws in the loop above are now redundant but harmless.
+            update_tilemap();
         }
 
 
@@ -2350,7 +2305,6 @@ namespace M1TE2
                 tile_x = tile2 & 0x0f;
                 tile_y = (tile2 >> 4) & 0x0f;
                 tile_num = (tile_y * 16) + tile_x;
-                tile_show_num();
 
                 set14bppToolStripMenuItem.Checked = false; // set them all to false
                 set24bppToolStripMenuItem.Checked = false;
@@ -2432,6 +2386,7 @@ namespace M1TE2
                     Tiles.Make_Box_Same();
                 }
 
+                tile_show_num(); // after tile_set is updated, so the number reflects the picked set
                 update_palette();
                 common_update2();
             }
@@ -2570,7 +2525,7 @@ namespace M1TE2
                 {
                     int top = ((ME_y1 + y1) * Maps.W) + x1 + offset;
                     int bottom = ((ME_y2 - y1) * Maps.W) + x1 + offset;
-                    bottom -= 32;
+                    bottom -= Maps.W; // step up one row (ME_y2 is exclusive); stride is Maps.W, not a hardcoded 32
                     int temp = Maps.tile[top];
                     Maps.tile[top] = Maps.tile[bottom];
                     Maps.tile[bottom] = temp;
@@ -2737,7 +2692,7 @@ namespace M1TE2
             {
                 ME_x1 = 0;
                 ME_y1 = 0;
-                ME_x2 = 32;
+                ME_x2 = map_width;
                 ME_y2 = map_height;
             }
 
@@ -4434,8 +4389,8 @@ namespace M1TE2
             // put on map ?
             if (f3_cb3 == false) return;
 
-            int map_width = width / 8;
-            int map_height = height / 8;
+            int img_w = width / 8;   // imported image size in tiles
+            int img_h = height / 8;  // (these locals previously shadowed the map dims)
 
             int pal_sel = 0;
             int map_offset = map_view * Maps.LAYER;
@@ -4454,16 +4409,16 @@ namespace M1TE2
 
             if(tilesize == TILE_8X8)
             {
-                for (int y1 = 0; y1 < map_height; y1++)
+                for (int y1 = 0; y1 < img_h; y1++)
                 {
                     int final_map_y = y1 + active_map_y;
-                    if (final_map_y >= 32) break;
+                    if (final_map_y >= map_height) break;
                     int final_tile_y = y1 + tile_y;
                     if (final_tile_y >= 16) break;
-                    for (int x1 = 0; x1 < map_width; x1++)
+                    for (int x1 = 0; x1 < img_w; x1++)
                     {
                         int final_map_x = x1 + active_map_x;
-                        if (final_map_x >= 32) break;
+                        if (final_map_x >= map_width) break;
                         int final_tile_x = x1 + tile_x;
                         if (final_tile_x >= 16) break;
                         tile_is = (final_tile_y * 16) + final_tile_x + tile_offset;
@@ -4479,18 +4434,18 @@ namespace M1TE2
             }
             else // tilesize = 16x16
             {
-                for (int y1 = 0; y1 < map_height; y1+=2)
+                for (int y1 = 0; y1 < img_h; y1+=2)
                 {
                     int y1_half = y1 / 2;
                     int final_map_y = y1_half + active_map_y;
-                    if (final_map_y >= 32) break;
+                    if (final_map_y >= map_height) break;
                     int final_tile_y = y1 + tile_y;
                     if (final_tile_y >= 16) break;
-                    for (int x1 = 0; x1 < map_width; x1+=2)
+                    for (int x1 = 0; x1 < img_w; x1+=2)
                     {
                         int x1_half = x1 / 2;
                         int final_map_x = x1_half + active_map_x;
-                        if (final_map_x >= 32) break;
+                        if (final_map_x >= map_width) break;
                         int final_tile_x = x1 + tile_x;
                         if (final_tile_x >= 16) break;
                         tile_is = (final_tile_y * 16) + final_tile_x + tile_offset;
