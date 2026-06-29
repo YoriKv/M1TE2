@@ -20,6 +20,15 @@ namespace M1TE2
             this.Location = new Point(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y);
             RedrawEraseTilePreview(); // show the default erase tile (0) before anything is loaded
         }
+
+        // Show the open session's filename in the title bar, e.g.
+        // "M1TE - SNES Mode 1 Tile Editor ver 3.7 - overworld-w0.M1".
+        public void UpdateTitleBar()
+        {
+            this.Text = string.IsNullOrEmpty(current_session_path)
+                ? BASE_TITLE
+                : BASE_TITLE + " - " + System.IO.Path.GetFileName(current_session_path);
+        }
         static Form2 newChild = null;
         static Form3 newChild3 = null;
         static Form4 newChild4 = null;
@@ -113,6 +122,9 @@ namespace M1TE2
         // full path of the currently open/saved session, "" if none yet.
         // Save Session overwrites this file instead of prompting "Save As".
         public static string current_session_path = "";
+
+        // base window title; UpdateTitleBar() appends the open session's filename.
+        public const string BASE_TITLE = "M1TE - SNES Mode 1 Tile Editor ver 3.7";
 
         // optional .M1 path passed on the command line, auto-opened at startup
         public static string startup_file = null;

@@ -227,6 +227,7 @@ namespace M1TE2
                         // remember the opened file so Save overwrites it
                         current_session_path = System.IO.Path.GetFullPath(path);
                         loaded = true;
+                        UpdateTitleBar(); // show the filename in the title bar
 
                         //end, updates are below
 
@@ -438,6 +439,7 @@ namespace M1TE2
 
                 // remember the chosen file so later saves overwrite it
                 current_session_path = saveFileDialog1.FileName;
+                UpdateTitleBar(); // reflect the saved filename in the title bar
             }
         } // END OF SAVE SESSION
 
