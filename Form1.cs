@@ -2275,8 +2275,7 @@ namespace M1TE2
 
             //Checkpoint();
 
-            // map the click to a tile (quadrant-zoom aware) so the correct tile
-            // is selected; clicking no longer resets the zoom (use the wheel)
+            // map the click to a tile (zoom/scroll aware) so the correct tile is selected
             int new_x, new_y;
             MapClickToTile(e.X, e.Y, out new_x, out new_y);
             active_map_x = new_x;
@@ -2450,7 +2449,7 @@ namespace M1TE2
 
             if (e.Button == MouseButtons.Left)
             {
-                // quadrant-zoom aware click-to-tile mapping
+                // zoom/scroll aware click-to-tile mapping
                 int new_x, new_y;
                 MapClickToTile(e.X, e.Y, out new_x, out new_y);
                 active_map_x = new_x;
