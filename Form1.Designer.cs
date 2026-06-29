@@ -434,7 +434,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(12, 634);
+            this.label15.Location = new System.Drawing.Point(12, 662);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(92, 13);
             this.label15.TabIndex = 35;
@@ -442,7 +442,7 @@
             //
             // textBox6
             //
-            this.textBox6.Location = new System.Drawing.Point(110, 630);
+            this.textBox6.Location = new System.Drawing.Point(110, 658);
             this.textBox6.MaxLength = 2;
             this.textBox6.Name = "textBox6";
             this.textBox6.Size = new System.Drawing.Size(38, 20);
@@ -453,7 +453,7 @@
             // label16
             //
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(158, 634);
+            this.label16.Location = new System.Drawing.Point(158, 662);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(92, 13);
             this.label16.TabIndex = 37;
@@ -461,7 +461,7 @@
             //
             // textBox7
             //
-            this.textBox7.Location = new System.Drawing.Point(256, 630);
+            this.textBox7.Location = new System.Drawing.Point(256, 658);
             this.textBox7.MaxLength = 2;
             this.textBox7.Name = "textBox7";
             this.textBox7.Size = new System.Drawing.Size(38, 20);
@@ -1221,7 +1221,7 @@
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(824, 680);
+            this.ClientSize = new System.Drawing.Size(824, 692);
             this.Controls.Add(this.labelZoom);
             this.Controls.Add(this.buttonZoomOut);
             this.Controls.Add(this.buttonZoomIn);
@@ -1273,7 +1273,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1000, 800);
-            this.MinimumSize = new System.Drawing.Size(840, 718);
+            this.MinimumSize = new System.Drawing.Size(840, 730);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "M1TE - SNES Mode 1 Tile Editor ver 3.7";
