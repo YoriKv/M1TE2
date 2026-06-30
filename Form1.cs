@@ -78,6 +78,11 @@ namespace M1TE2
         public static int map_scroll_x = 0;
         public static int map_scroll_y = 0;
         public const int MAP_CANVAS = 512; // big map box is a fixed 512x512 display
+
+        // middle-button drag panning of the map view (tile-step)
+        private bool map_panning = false;
+        private int pan_mouse_x0, pan_mouse_y0;   // mouse pos (px) at pan start
+        private int pan_scroll_x0, pan_scroll_y0; // scroll offset (tiles) at pan start
         public static int last_tile_x, last_tile_y;
         
         public const int BRUSH1x1 = 0;
@@ -2117,6 +2122,14 @@ namespace M1TE2
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
+            if (map_panning)
+            { // end middle-button drag panning
+                map_panning = false;
+                pictureBox1.Cursor = Cursors.Default;
+                label5.Focus();
+                return;
+            }
+
             if (disable_map_click == 1) // click dialog boxes were causing mouse clicks on map
             {
                 disable_map_click = 0;
@@ -2244,6 +2257,17 @@ namespace M1TE2
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         { // tilemap
             disable_map_click = 0;
+
+            if (e.Button == MouseButtons.Middle)
+            { // start middle-button drag panning (allowed in edit and preview modes)
+                map_panning = true;
+                pan_mouse_x0 = e.X;
+                pan_mouse_y0 = e.Y;
+                pan_scroll_x0 = map_scroll_x;
+                pan_scroll_y0 = map_scroll_y;
+                pictureBox1.Cursor = Cursors.SizeAll;
+                return;
+            }
 
             if (map_view > 2)
             {
@@ -2424,6 +2448,16 @@ namespace M1TE2
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
+            if (map_panning && e.Button == MouseButtons.Middle)
+            { // tile-step pan: convert the pixel drag to a tile offset from the anchor
+                int eff = MapCellPx();
+                map_scroll_x = pan_scroll_x0 - ((e.X - pan_mouse_x0) / eff);
+                map_scroll_y = pan_scroll_y0 - ((e.Y - pan_mouse_y0) / eff);
+                SyncMapScroll();  // clamp offsets and sync the scrollbars
+                update_tilemap(); // redraw at the new offset
+                return;
+            }
+
             if (map_view > 2) return;
             if (disable_map_click == 1) return;
 
