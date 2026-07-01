@@ -66,8 +66,8 @@ namespace M1TE2
                 case "1": case "bg1": return 0; // BG1
                 case "2": case "bg2": return 1; // BG2
                 case "3": case "bg3": return 2; // BG3
-                case "all": case "preview": case "123": return 3; // Preview 1/2/3
-                case "312": return 4; // Preview 3/1/2
+                case "all": case "preview": case "composite": case "123": return 3; // toggle composite preview
+                case "bg3hi": case "bg3high": case "312": return 4; // toggle BG3 high priority
                 default: return -1;
             }
         }

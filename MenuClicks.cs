@@ -217,11 +217,7 @@ namespace M1TE2
                                 }
                             }
                         }
-                        if (map_view < 3)
-                        {
-                            if (Maps.priority[map_view * Maps.LAYER] == 0) checkBox3.Checked = false;
-                            else checkBox3.Checked = true;
-                        }
+                        if (map_view < 3) syncPriorityCheckbox(); // per-tile priority loaded verbatim
                         else checkBox3.Checked = false;
 
                         // remember the opened file so Save overwrites it
@@ -258,60 +254,14 @@ namespace M1TE2
 
 
 
-        public void conformPriorities()
+        // Refresh the per-tile "Priority" checkbox to reflect the currently selected
+        // cell. Display only — per-tile priority is preserved (a .map carries a
+        // priority bit per cell, and the composite preview renders it).
+        public void syncPriorityCheckbox()
         {
             if (map_view > 2) return;
-            int offset = 0;
-            int fill_val = 0;
-
-            if (map_view == 0)
-            {
-                offset = 0;
-                if (Maps.priority[offset] == 0)
-                {
-                    checkBox3.Checked = false;
-                    fill_val = 0;
-                }
-                else
-                {
-                    checkBox3.Checked = true;
-                    fill_val = 1;
-                }
-            }
-            else if(map_view == 1)
-            {
-                offset = Maps.LAYER;
-                if (Maps.priority[offset] == 0)
-                {
-                    checkBox3.Checked = false;
-                    fill_val = 0;
-                }
-                else
-                {
-                    checkBox3.Checked = true;
-                    fill_val = 1;
-                }
-            }
-            else if (map_view == 2)
-            {
-                offset = 2 * Maps.LAYER;
-                if (Maps.priority[offset] == 0)
-                {
-                    checkBox3.Checked = false;
-                    fill_val = 0;
-                }
-                else
-                {
-                    checkBox3.Checked = true;
-                    fill_val = 1;
-                }
-            }
-
-            // make entire map conform
-            for (int i = 0; i < Maps.LAYER; i++)
-            {
-                Maps.priority[offset++] = fill_val;
-            }
+            int idx = active_map_x + (active_map_y * Maps.W) + (map_view * Maps.LAYER);
+            checkBox3.Checked = (Maps.priority[idx] != 0);
         }
 
 
@@ -622,8 +572,8 @@ namespace M1TE2
                     ClearLayer(map_view);
                     UnpackScreenBlock(map_array, map_size, map_view);
 
-                    // make all the priority bits are the same.
-                    conformPriorities();
+                    // per-tile priority is preserved from the .map; just refresh the UI
+                    syncPriorityCheckbox();
                 }
 
                 fs.Close();
@@ -686,8 +636,8 @@ namespace M1TE2
                         p += 2;
                     }
 
-                    // make all the priority bits are the same.
-                    conformPriorities();
+                    // per-tile priority is preserved from the .map; just refresh the UI
+                    syncPriorityCheckbox();
                 }
 
                 fs.Close();
@@ -756,8 +706,8 @@ namespace M1TE2
                         p += 2;
                     }
 
-                    // make all the priority bits are the same.
-                    conformPriorities();
+                    // per-tile priority is preserved from the .map; just refresh the UI
+                    syncPriorityCheckbox();
                 }
 
                 fs.Close();
@@ -2216,8 +2166,7 @@ namespace M1TE2
                 update_tilemap();
             }
 
-            if (Maps.priority[0] == 0) checkBox3.Checked = false;
-            else checkBox3.Checked = true; //priority
+            syncPriorityCheckbox(); // reflect the selected tile's priority bit
         }
 
 
@@ -2251,8 +2200,7 @@ namespace M1TE2
             {
                 update_tilemap();
             }
-            if (Maps.priority[Maps.LAYER] == 0) checkBox3.Checked = false;
-            else checkBox3.Checked = true; //priority
+            syncPriorityCheckbox(); // reflect the selected tile's priority bit
         }
 
 
@@ -2287,19 +2235,27 @@ namespace M1TE2
             {
                 update_tilemap();
             }
-            if (Maps.priority[2 * Maps.LAYER] == 0) checkBox3.Checked = false;
-            else checkBox3.Checked = true; //priority
+            syncPriorityCheckbox(); // reflect the selected tile's priority bit
         }
 
 
 
-        private void previewAllToolStripMenuItem_Click(object sender, EventArgs e)
-        { // BG VIEW / Preview 1/2/3 overlay toggle (keeps editing the active BG)
+        // The two previews are mutually exclusive: both render the 3-layer composite
+        // (BG3 in back), the second also turning on BG3 high priority (BG3's
+        // priority-1 tiles float to the very front). Keep their checkmarks in sync.
+        public void SyncPreviewChecks()
+        {
+            previewAllToolStripMenuItem.Checked = (preview_overlay != 0 && !bg3_high_priority);
+            preview312ToolStripMenuItem.Checked = (preview_overlay != 0 && bg3_high_priority);
+        }
 
-            // toggle this overlay; the two preview overlays are mutually exclusive
-            preview_overlay = (preview_overlay == 3) ? 0 : 3;
-            previewAllToolStripMenuItem.Checked = (preview_overlay == 3);
-            preview312ToolStripMenuItem.Checked = false;
+        private void previewAllToolStripMenuItem_Click(object sender, EventArgs e)
+        { // BG VIEW / Preview (3/2/1) — composite, BG3 in back (keeps editing the active BG)
+
+            bool active = (preview_overlay != 0 && !bg3_high_priority);
+            preview_overlay = active ? 0 : 1; // toggle off if it's already this preview
+            bg3_high_priority = false;
+            SyncPreviewChecks();
             update_view_label();
             common_update2(); // re-render the map with/without the overlay
         }
@@ -2307,12 +2263,12 @@ namespace M1TE2
 
 
         private void preview312ToolStripMenuItem_Click(object sender, EventArgs e)
-        { // BG VIEW / Preview 3/1/2 overlay toggle (keeps editing the active BG)
+        { // BG VIEW / Preview (3/2/1/3 priority) — composite with BG3 high priority on
 
-            // toggle this overlay; the two preview overlays are mutually exclusive
-            preview_overlay = (preview_overlay == 4) ? 0 : 4;
-            preview312ToolStripMenuItem.Checked = (preview_overlay == 4);
-            previewAllToolStripMenuItem.Checked = false;
+            bool active = (preview_overlay != 0 && bg3_high_priority);
+            preview_overlay = active ? 0 : 1; // toggle off if it's already this preview
+            bg3_high_priority = true;
+            SyncPreviewChecks();
             update_view_label();
             common_update2(); // re-render the map with/without the overlay
         }
@@ -2323,8 +2279,8 @@ namespace M1TE2
         public void update_view_label()
         {
             string s = "BG" + (map_view + 1);
-            if (preview_overlay == 3) s += " + Preview 1/2/3";
-            else if (preview_overlay == 4) s += " + Preview 3/1/2";
+            if (preview_overlay != 0)
+                s += bg3_high_priority ? " + Preview (3/2/1/3 priority)" : " + Preview (3/2/1)";
             label11.Text = s;
         }
 
@@ -2339,8 +2295,8 @@ namespace M1TE2
                 case 0: bG1TopToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG1
                 case 1: bG2ToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG2
                 case 2: bG3ToolStripMenuItem_Click(this, EventArgs.Empty); break; // BG3
-                case 3: previewAllToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview 1/2/3
-                case 4: preview312ToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview 3/1/2
+                case 3: previewAllToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview (3/2/1)
+                case 4: preview312ToolStripMenuItem_Click(this, EventArgs.Empty); break; // Preview (3/2/1/3 priority)
             }
         }
 
@@ -2370,8 +2326,8 @@ namespace M1TE2
                 bG1TopToolStripMenuItem.Checked = true;
                 bG2ToolStripMenuItem.Checked = false;
                 bG3ToolStripMenuItem.Checked = false;
-                previewAllToolStripMenuItem.Checked = false;
-                preview312ToolStripMenuItem.Checked = false;
+                preview_overlay = 0; // leaving the composite for a single BG view
+                SyncPreviewChecks();
                 label11.Text = "BG1";
                 map_view = 0;
                 update_tilemap();
@@ -2410,8 +2366,8 @@ namespace M1TE2
                 bG1TopToolStripMenuItem.Checked = true;
                 bG2ToolStripMenuItem.Checked = false;
                 bG3ToolStripMenuItem.Checked = false;
-                previewAllToolStripMenuItem.Checked = false;
-                preview312ToolStripMenuItem.Checked = false;
+                preview_overlay = 0; // leaving the composite for a single BG view
+                SyncPreviewChecks();
                 label11.Text = "BG1";
                 map_view = 0;
                 update_tilemap();
@@ -2451,8 +2407,8 @@ namespace M1TE2
                 bG1TopToolStripMenuItem.Checked = true;
                 bG2ToolStripMenuItem.Checked = false;
                 bG3ToolStripMenuItem.Checked = false;
-                previewAllToolStripMenuItem.Checked = false;
-                preview312ToolStripMenuItem.Checked = false;
+                preview_overlay = 0; // leaving the composite for a single BG view
+                SyncPreviewChecks();
                 label11.Text = "BG1";
                 map_view = 0;
                 update_tilemap();
@@ -2492,8 +2448,8 @@ namespace M1TE2
                 bG1TopToolStripMenuItem.Checked = true;
                 bG2ToolStripMenuItem.Checked = false;
                 bG3ToolStripMenuItem.Checked = false;
-                previewAllToolStripMenuItem.Checked = false;
-                preview312ToolStripMenuItem.Checked = false;
+                preview_overlay = 0; // leaving the composite for a single BG view
+                SyncPreviewChecks();
                 label11.Text = "BG1";
                 map_view = 0;
                 update_tilemap();
@@ -2533,8 +2489,8 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = true;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
+            preview_overlay = 0; // leaving the composite for a single BG view
+            SyncPreviewChecks();
             label11.Text = "BG3";
             map_view = 2;
             if (pal_y > 1) pal_y = 1; // palette y selection
@@ -2573,8 +2529,8 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = true;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
+            preview_overlay = 0; // leaving the composite for a single BG view
+            SyncPreviewChecks();
             label11.Text = "BG3";
             map_view = 2;
             if (pal_y > 1) pal_y = 1; // palette y selection
@@ -2613,8 +2569,8 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = true;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
+            preview_overlay = 0; // leaving the composite for a single BG view
+            SyncPreviewChecks();
             label11.Text = "BG3";
             map_view = 2;
             if (pal_y > 1) pal_y = 1; // palette y selection
@@ -2653,8 +2609,8 @@ namespace M1TE2
             bG1TopToolStripMenuItem.Checked = false;
             bG2ToolStripMenuItem.Checked = false;
             bG3ToolStripMenuItem.Checked = true;
-            previewAllToolStripMenuItem.Checked = false;
-            preview312ToolStripMenuItem.Checked = false;
+            preview_overlay = 0; // leaving the composite for a single BG view
+            SyncPreviewChecks();
             label11.Text = "BG3";
             map_view = 2;
             if (pal_y > 1) pal_y = 1; // palette y selection
@@ -2697,10 +2653,9 @@ namespace M1TE2
             ME_y1 = active_map_y;
             ME_y2 = ME_y1 + 1;
             ME_has_copied = false;
-            checkBox1.Checked = false;
-            checkBox2.Checked = false; // just skip these
-            checkBox5.Checked = false;
+            checkBox5.Checked = false; // brush "Apply" toggles off when entering map-edit
             checkBox6.Checked = false;
+            RefreshSelectedTileAttrs(); // H/V/Priority/Palette show the selection's top-left tile
 
             //update_tile_image();
             common_update2();
@@ -2885,7 +2840,125 @@ namespace M1TE2
 
         private void aboutM1TEToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("M1TE = Mode 1 Tile Editor for SNES, by Doug Fraker, 2020.\n\nnesdoug.com");
+            // A small custom dialog (instead of MessageBox) so the GitHub URL is a
+            // real clickable link.
+            using (Form about = new Form())
+            {
+                about.Text = "About M1TE";
+                about.FormBorderStyle = FormBorderStyle.FixedDialog;
+                about.StartPosition = FormStartPosition.CenterParent;
+                about.MaximizeBox = false;
+                about.MinimizeBox = false;
+                about.ShowIcon = false;
+                about.ClientSize = new Size(380, 180);
+
+                Label info = new Label();
+                info.Location = new Point(16, 16);
+                info.Size = new Size(348, 90);
+                info.Text = "M1TE = Mode 1 Tile Editor for SNES,\r\n"
+                          + "by Doug Fraker, 2020.\r\n\r\n"
+                          + "nesdoug.com\r\n\r\n"
+                          + "UX and other improvements by Yori Kvitchko";
+
+                LinkLabel link = new LinkLabel();
+                link.AutoSize = true;
+                link.Location = new Point(16, 112);
+                link.Text = "https://github.com/YoriKv/M1TE2/";
+                link.LinkClicked += (s, ev) =>
+                {
+                    link.LinkVisited = true;
+                    try { System.Diagnostics.Process.Start("https://github.com/YoriKv/M1TE2/"); }
+                    catch { /* no default browser / blocked - ignore */ }
+                };
+
+                Button ok = new Button();
+                ok.Text = "OK";
+                ok.DialogResult = DialogResult.OK;
+                ok.Size = new Size(75, 23);
+                ok.Location = new Point(289, 145);
+
+                about.Controls.Add(info);
+                about.Controls.Add(link);
+                about.Controls.Add(ok);
+                about.AcceptButton = ok;
+
+                about.ShowDialog(this);
+            }
+        }
+
+        private void shortcutsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string text =
+                "--- Menu (anywhere) ---\r\n" +
+                "  Ctrl+O          Open session\r\n" +
+                "  Ctrl+S          Save session\r\n" +
+                "  Ctrl+E          Export image\r\n" +
+                "  Ctrl+Z          Undo\r\n" +
+                "  Ctrl+Y          Redo  (or Ctrl+Shift+Z)\r\n" +
+                "\r\n" +
+                "--- View & palette (all modes) ---\r\n" +
+                "  1 / 2 / 3       View BG1 / BG2 / BG3\r\n" +
+                "  4               Toggle Preview (3/2/1)\r\n" +
+                "  5               Toggle Preview (3/2/1/3 priority)\r\n" +
+                "  Ctrl+1..4       Select 4bpp tileset 1-4\r\n" +
+                "  Ctrl+5..8       Select 2bpp tileset 5-8\r\n" +
+                "  Q               Copy selected palette colour\r\n" +
+                "  W               Paste palette colour to selected\r\n" +
+                "  E               Clear selected palette colour\r\n" +
+                "\r\n" +
+                "--- Tile editing (normal brush modes) ---\r\n" +
+                "  Arrow keys      Shift tile pixels (left/up/right/down)\r\n" +
+                "  NumPad 4/8/6/2  Move tile selection (left/up/right/down)\r\n" +
+                "  H / Y           Flip tile horizontally / vertically\r\n" +
+                "  R / L           Rotate tile clockwise / counter-clockwise\r\n" +
+                "  C / X / V       Copy / Cut / Paste tile\r\n" +
+                "  Delete          Clear tile\r\n" +
+                "  F               Fill tile with selected colour\r\n" +
+                "  A               Select all\r\n" +
+                "\r\n" +
+                "--- Map Edit mode ---\r\n" +
+                "  H / Y           Flip selection horizontally / vertically\r\n" +
+                "  C / X / V       Copy / Cut / Paste selection\r\n" +
+                "  Delete          Erase selection (erase tile)\r\n" +
+                "  F               Fill selection with current tile\r\n" +
+                "  A               Select all\r\n";
+
+            using (Form dlg = new Form())
+            {
+                dlg.Text = "Keyboard Shortcuts";
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+                dlg.ShowIcon = false;
+                dlg.ClientSize = new Size(520, 600);
+
+                TextBox box = new TextBox();
+                box.Multiline = true;
+                box.ReadOnly = true;
+                box.WordWrap = false;
+                box.ScrollBars = ScrollBars.Vertical;
+                box.TabStop = false;
+                box.BackColor = System.Drawing.Color.White;
+                box.Font = new Font(FontFamily.GenericMonospace, 9F);
+                box.Location = new Point(12, 12);
+                box.Size = new Size(496, 540);
+                box.Text = text;
+                box.Select(0, 0); // don't show the whole text pre-selected
+
+                Button ok = new Button();
+                ok.Text = "OK";
+                ok.DialogResult = DialogResult.OK;
+                ok.Size = new Size(75, 23);
+                ok.Location = new Point(433, 564);
+
+                dlg.Controls.Add(box);
+                dlg.Controls.Add(ok);
+                dlg.AcceptButton = ok;
+                dlg.Shown += (s, ev) => ok.Focus(); // keep focus off the read-only box
+
+                dlg.ShowDialog(this);
+            }
         }
         
 

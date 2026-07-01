@@ -29,6 +29,13 @@ byte 1 (high):  v h o p p p c c
                 v ────────────────── vertical flip
 ```
 
+The **priority bit is per 8×8 cell** (the SNES Mode-1 high/low priority band — it
+controls whether a tile renders in front of or behind the other BG layers.
+Both formats store it per cell, M1TE edits it
+per cell ("Priority" / "Apply Priority"), and the composite preview renders it by
+priority band. It round-trips losslessly — importing a `.map` preserves each cell's
+priority verbatim (it is **not** flattened to a single per-layer value).
+
 ---
 
 ## 2. Map dimensions and internal model

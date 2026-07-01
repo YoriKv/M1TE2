@@ -52,10 +52,13 @@
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.label14 = new System.Windows.Forms.Label();
+            this.labelSelectedTile = new System.Windows.Forms.Label();
+            this.labelMapBrush = new System.Windows.Forms.Label();
             this.textBox5 = new System.Windows.Forms.TextBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
+            this.checkBox8 = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
             this.textBox6 = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
@@ -114,6 +117,7 @@
             this.set82bppToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutM1TEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -165,7 +169,7 @@
             this.pictureBox1.Location = new System.Drawing.Point(12, 47);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(512, 512);
-            this.pictureBox1.TabIndex = 0;
+            this.pictureBox1.TabIndex = 16;
             this.pictureBox1.TabStop = false;
             this.pictureBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseClick);
             this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDown);
@@ -178,7 +182,7 @@
             this.pictureBox2.Location = new System.Drawing.Point(550, 47);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(256, 256);
-            this.pictureBox2.TabIndex = 2;
+            this.pictureBox2.TabIndex = 18;
             this.pictureBox2.TabStop = false;
             this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
             this.pictureBox2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_MouseDown);
@@ -191,39 +195,39 @@
             this.pictureBox3.Location = new System.Drawing.Point(550, 320);
             this.pictureBox3.Name = "pictureBox3";
             this.pictureBox3.Size = new System.Drawing.Size(256, 240);
-            this.pictureBox3.TabIndex = 3;
+            this.pictureBox3.TabIndex = 20;
             this.pictureBox3.TabStop = false;
             this.pictureBox3.Click += new System.EventHandler(this.pictureBox3_Click);
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(623, 597);
+            this.textBox1.Location = new System.Drawing.Point(596, 596);
             this.textBox1.MaxLength = 3;
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(41, 20);
-            this.textBox1.TabIndex = 4;
+            this.textBox1.TabIndex = 41;
             this.textBox1.Text = "0";
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             this.textBox1.Leave += new System.EventHandler(this.textBox1_Leave);
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(690, 597);
+            this.textBox2.Location = new System.Drawing.Point(663, 596);
             this.textBox2.MaxLength = 3;
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(41, 20);
-            this.textBox2.TabIndex = 5;
+            this.textBox2.TabIndex = 43;
             this.textBox2.Text = "0";
             this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
             this.textBox2.Leave += new System.EventHandler(this.textBox2_Leave);
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(757, 597);
+            this.textBox3.Location = new System.Drawing.Point(730, 596);
             this.textBox3.MaxLength = 3;
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(41, 20);
-            this.textBox3.TabIndex = 6;
+            this.textBox3.TabIndex = 45;
             this.textBox3.Text = "0";
             this.textBox3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox3_KeyPress);
             this.textBox3.Leave += new System.EventHandler(this.textBox3_Leave);
@@ -231,37 +235,37 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(602, 599);
+            this.label1.Location = new System.Drawing.Point(575, 598);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(15, 13);
-            this.label1.TabIndex = 7;
+            this.label1.TabIndex = 40;
             this.label1.Text = "R";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(670, 600);
+            this.label2.Location = new System.Drawing.Point(643, 599);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(15, 13);
-            this.label2.TabIndex = 8;
+            this.label2.TabIndex = 42;
             this.label2.Text = "G";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(736, 600);
+            this.label3.Location = new System.Drawing.Point(709, 599);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(14, 13);
-            this.label3.TabIndex = 9;
+            this.label3.TabIndex = 44;
             this.label3.Text = "B";
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(508, 597);
+            this.textBox4.Location = new System.Drawing.Point(605, 667);
             this.textBox4.MaxLength = 4;
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new System.Drawing.Size(61, 20);
-            this.textBox4.TabIndex = 10;
+            this.textBox4.TabIndex = 50;
             this.textBox4.Text = "0000";
             this.textBox4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox4_KeyPress);
             this.textBox4.Leave += new System.EventHandler(this.textBox4_Leave);
@@ -269,10 +273,10 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(474, 600);
+            this.label4.Location = new System.Drawing.Point(572, 670);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(29, 13);
-            this.label4.TabIndex = 11;
+            this.label4.TabIndex = 49;
             this.label4.Text = "HEX";
             // 
             // label5
@@ -291,7 +295,7 @@
             this.label6.Location = new System.Drawing.Point(548, 306);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(40, 13);
-            this.label6.TabIndex = 13;
+            this.label6.TabIndex = 19;
             this.label6.Text = "Palette";
             // 
             // label7
@@ -300,7 +304,7 @@
             this.label7.Location = new System.Drawing.Point(12, 31);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(44, 13);
-            this.label7.TabIndex = 14;
+            this.label7.TabIndex = 7;
             this.label7.Text = "Tilemap";
             // 
             // label9
@@ -309,7 +313,7 @@
             this.label9.Location = new System.Drawing.Point(718, 31);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(34, 13);
-            this.label9.TabIndex = 22;
+            this.label9.TabIndex = 15;
             this.label9.Text = "00   0";
             // 
             // label10
@@ -318,7 +322,7 @@
             this.label10.Location = new System.Drawing.Point(591, 31);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(13, 13);
-            this.label10.TabIndex = 23;
+            this.label10.TabIndex = 13;
             this.label10.Text = "1";
             // 
             // label11
@@ -327,34 +331,34 @@
             this.label11.Location = new System.Drawing.Point(62, 31);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(28, 13);
-            this.label11.TabIndex = 24;
+            this.label11.TabIndex = 8;
             this.label11.Text = "BG1";
             // 
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(346, 31);
+            this.label12.Location = new System.Drawing.Point(426, 31);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(32, 13);
-            this.label12.TabIndex = 25;
+            this.label12.TabIndex = 10;
             this.label12.Text = "X = 0";
             // 
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(410, 31);
+            this.label13.Location = new System.Drawing.Point(470, 31);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(32, 13);
-            this.label13.TabIndex = 26;
+            this.label13.TabIndex = 11;
             this.label13.Text = "Y = 0";
             // 
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(215, 596);
+            this.checkBox1.Location = new System.Drawing.Point(135, 596);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(53, 17);
-            this.checkBox1.TabIndex = 27;
+            this.checkBox1.TabIndex = 23;
             this.checkBox1.Text = "H Flip";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.Click += new System.EventHandler(this.checkBox1_Click);
@@ -362,10 +366,10 @@
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(288, 596);
+            this.checkBox2.Location = new System.Drawing.Point(208, 596);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(52, 17);
-            this.checkBox2.TabIndex = 28;
+            this.checkBox2.TabIndex = 24;
             this.checkBox2.Text = "V Flip";
             this.checkBox2.UseVisualStyleBackColor = true;
             this.checkBox2.Click += new System.EventHandler(this.checkBox2_Click);
@@ -373,11 +377,11 @@
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(360, 596);
+            this.checkBox3.Location = new System.Drawing.Point(280, 596);
             this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(99, 17);
-            this.checkBox3.TabIndex = 29;
-            this.checkBox3.Text = "Priority (fullmap)";
+            this.checkBox3.Size = new System.Drawing.Size(60, 17);
+            this.checkBox3.TabIndex = 25;
+            this.checkBox3.Text = "Priority";
             this.checkBox3.UseVisualStyleBackColor = true;
             this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
             this.checkBox3.Click += new System.EventHandler(this.checkBox3_Click);
@@ -385,29 +389,48 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(105, 599);
+            this.label14.Location = new System.Drawing.Point(346, 597);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(40, 13);
-            this.label14.TabIndex = 30;
+            this.label14.TabIndex = 26;
             this.label14.Text = "Palette";
-            // 
+            //
+            // labelSelectedTile
+            //
+            this.labelSelectedTile.AutoSize = true;
+            this.labelSelectedTile.Location = new System.Drawing.Point(13, 599);
+            this.labelSelectedTile.Name = "labelSelectedTile";
+            this.labelSelectedTile.Size = new System.Drawing.Size(95, 13);
+            this.labelSelectedTile.TabIndex = 22;
+            this.labelSelectedTile.Text = "Selected Map Tile:";
+            //
+            // labelMapBrush
+            //
+            this.labelMapBrush.AutoSize = true;
+            this.labelMapBrush.Location = new System.Drawing.Point(13, 635);
+            this.labelMapBrush.Name = "labelMapBrush";
+            this.labelMapBrush.Size = new System.Drawing.Size(85, 13);
+            this.labelMapBrush.TabIndex = 28;
+            this.labelMapBrush.Text = "Map Tile Brush:";
+            //
             // textBox5
             // 
-            this.textBox5.Location = new System.Drawing.Point(151, 595);
+            this.textBox5.Location = new System.Drawing.Point(390, 594);
             this.textBox5.MaxLength = 1;
             this.textBox5.Name = "textBox5";
             this.textBox5.Size = new System.Drawing.Size(38, 20);
-            this.textBox5.TabIndex = 31;
+            this.textBox5.TabIndex = 27;
             this.textBox5.Text = "0";
             this.textBox5.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox5_KeyPress);
+            this.textBox5.Leave += new System.EventHandler(this.textBox5_Leave);
             // 
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(13, 597);
+            this.checkBox4.Location = new System.Drawing.Point(484, 668);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(77, 17);
-            this.checkBox4.TabIndex = 32;
+            this.checkBox4.TabIndex = 39;
             this.checkBox4.Text = "16x16 Grid";
             this.checkBox4.UseVisualStyleBackColor = true;
             this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox4_CheckedChanged);
@@ -415,10 +438,10 @@
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(170, 632);
+            this.checkBox5.Location = new System.Drawing.Point(110, 632);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(82, 17);
-            this.checkBox5.TabIndex = 33;
+            this.checkBox5.TabIndex = 29;
             this.checkBox5.Text = "Apply H Flip";
             this.checkBox5.UseVisualStyleBackColor = true;
             this.checkBox5.Click += new System.EventHandler(this.checkBox5_Click);
@@ -426,59 +449,72 @@
             // checkBox6
             // 
             this.checkBox6.AutoSize = true;
-            this.checkBox6.Location = new System.Drawing.Point(265, 632);
+            this.checkBox6.Location = new System.Drawing.Point(205, 632);
             this.checkBox6.Name = "checkBox6";
             this.checkBox6.Size = new System.Drawing.Size(81, 17);
-            this.checkBox6.TabIndex = 34;
+            this.checkBox6.TabIndex = 30;
             this.checkBox6.Text = "Apply V Flip";
             this.checkBox6.UseVisualStyleBackColor = true;
             this.checkBox6.Click += new System.EventHandler(this.checkBox6_Click);
+            //
+            // checkBox8
+            //
+            this.checkBox8.AutoSize = true;
+            this.checkBox8.Location = new System.Drawing.Point(300, 632);
+            this.checkBox8.Name = "checkBox8";
+            this.checkBox8.Size = new System.Drawing.Size(95, 17);
+            this.checkBox8.TabIndex = 31;
+            this.checkBox8.Text = "Apply Priority";
+            this.checkBox8.UseVisualStyleBackColor = true;
+            this.checkBox8.Click += new System.EventHandler(this.checkBox8_Click);
             // 
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(12, 662);
+            this.label15.Location = new System.Drawing.Point(12, 670);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(92, 13);
-            this.label15.TabIndex = 35;
+            this.label15.TabIndex = 33;
             this.label15.Text = "Map Height (1-64)";
             //
             // textBox6
             //
-            this.textBox6.Location = new System.Drawing.Point(110, 658);
+            this.textBox6.Location = new System.Drawing.Point(110, 666);
             this.textBox6.MaxLength = 2;
             this.textBox6.Name = "textBox6";
             this.textBox6.Size = new System.Drawing.Size(38, 20);
-            this.textBox6.TabIndex = 36;
+            this.textBox6.TabIndex = 34;
             this.textBox6.Text = "28";
             this.textBox6.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox6_KeyPress);
+            this.textBox6.Leave += new System.EventHandler(this.textBox6_Leave);
             //
             // label16
             //
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(158, 662);
+            this.label16.Location = new System.Drawing.Point(158, 670);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(92, 13);
-            this.label16.TabIndex = 37;
+            this.label16.TabIndex = 35;
             this.label16.Text = "Map Width (32/64)";
             //
             // textBox7
             //
-            this.textBox7.Location = new System.Drawing.Point(256, 658);
+            this.textBox7.Location = new System.Drawing.Point(256, 666);
             this.textBox7.MaxLength = 2;
             this.textBox7.Name = "textBox7";
             this.textBox7.Size = new System.Drawing.Size(38, 20);
-            this.textBox7.TabIndex = 38;
+            this.textBox7.TabIndex = 36;
             this.textBox7.Text = "32";
             this.textBox7.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox7_KeyPress);
+            this.textBox7.Leave += new System.EventHandler(this.textBox7_Leave);
             //
             // buttonSetEraseTile
             //
             this.buttonSetEraseTile.BackColor = System.Drawing.Color.White;
-            this.buttonSetEraseTile.Location = new System.Drawing.Point(302, 656);
+            this.buttonSetEraseTile.Location = new System.Drawing.Point(302, 664);
             this.buttonSetEraseTile.Name = "buttonSetEraseTile";
             this.buttonSetEraseTile.Size = new System.Drawing.Size(104, 23);
-            this.buttonSetEraseTile.TabIndex = 39;
+            this.buttonSetEraseTile.TabIndex = 37;
             this.buttonSetEraseTile.Text = "Set Erase Tile";
             this.buttonSetEraseTile.UseVisualStyleBackColor = false;
             this.buttonSetEraseTile.Click += new System.EventHandler(this.buttonSetEraseTile_Click);
@@ -486,21 +522,21 @@
             // pictureBoxErase
             //
             this.pictureBoxErase.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBoxErase.Location = new System.Drawing.Point(412, 654);
+            this.pictureBoxErase.Location = new System.Drawing.Point(412, 663);
             this.pictureBoxErase.Name = "pictureBoxErase";
             this.pictureBoxErase.Size = new System.Drawing.Size(26, 26);
             this.pictureBoxErase.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBoxErase.TabIndex = 40;
+            this.pictureBoxErase.TabIndex = 38;
             this.pictureBoxErase.TabStop = false;
             this.pictureBoxErase.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxErase_MouseDown);
             //
             // checkBox7
             //
             this.checkBox7.AutoSize = true;
-            this.checkBox7.Location = new System.Drawing.Point(361, 632);
+            this.checkBox7.Location = new System.Drawing.Point(405, 632);
             this.checkBox7.Name = "checkBox7";
             this.checkBox7.Size = new System.Drawing.Size(83, 17);
-            this.checkBox7.TabIndex = 37;
+            this.checkBox7.TabIndex = 32;
             this.checkBox7.Text = "Palette Only";
             this.checkBox7.UseVisualStyleBackColor = true;
             this.checkBox7.Click += new System.EventHandler(this.checkBox7_Click);
@@ -812,15 +848,15 @@
             // previewAllToolStripMenuItem
             // 
             this.previewAllToolStripMenuItem.Name = "previewAllToolStripMenuItem";
-            this.previewAllToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.previewAllToolStripMenuItem.Text = "Preview 1/2/3";
+            this.previewAllToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.previewAllToolStripMenuItem.Text = "Preview (3/2/1)";
             this.previewAllToolStripMenuItem.Click += new System.EventHandler(this.previewAllToolStripMenuItem_Click);
             // 
             // preview312ToolStripMenuItem
             // 
             this.preview312ToolStripMenuItem.Name = "preview312ToolStripMenuItem";
-            this.preview312ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.preview312ToolStripMenuItem.Text = "Preview 3/1/2";
+            this.preview312ToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.preview312ToolStripMenuItem.Text = "Preview (3/2/1/3 priority)";
             this.preview312ToolStripMenuItem.Click += new System.EventHandler(this.preview312ToolStripMenuItem_Click);
             // 
             // tilesetToolStripMenuItem
@@ -900,17 +936,25 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.shortcutsToolStripMenuItem,
             this.aboutM1TEToolStripMenuItem});
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
             this.aboutToolStripMenuItem.Text = "Info";
-            // 
+            //
             // aboutM1TEToolStripMenuItem
-            // 
+            //
             this.aboutM1TEToolStripMenuItem.Name = "aboutM1TEToolStripMenuItem";
             this.aboutM1TEToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
             this.aboutM1TEToolStripMenuItem.Text = "About M1TE";
             this.aboutM1TEToolStripMenuItem.Click += new System.EventHandler(this.aboutM1TEToolStripMenuItem_Click);
+            //
+            // shortcutsToolStripMenuItem
+            //
+            this.shortcutsToolStripMenuItem.Name = "shortcutsToolStripMenuItem";
+            this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.shortcutsToolStripMenuItem.Text = "Shortcuts";
+            this.shortcutsToolStripMenuItem.Click += new System.EventHandler(this.shortcutsToolStripMenuItem_Click);
             // 
             // menuStrip1
             // 
@@ -929,7 +973,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(824, 24);
-            this.menuStrip1.TabIndex = 1;
+            this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // editToolStripMenuItem
@@ -1090,10 +1134,10 @@
             // button1
             // 
             this.button1.BackColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(477, 628);
+            this.button1.Location = new System.Drawing.Point(672, 666);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(92, 23);
-            this.button1.TabIndex = 38;
+            this.button1.TabIndex = 51;
             this.button1.Text = "Color Picker";
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
@@ -1102,10 +1146,10 @@
             // 
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.button2.Location = new System.Drawing.Point(154, 27);
+            this.button2.Location = new System.Drawing.Point(234, 27);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(20, 20);
-            this.button2.TabIndex = 39;
+            this.button2.TabIndex = 1;
             this.button2.Text = "◀";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
@@ -1114,10 +1158,10 @@
             // 
             this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.button3.Location = new System.Drawing.Point(180, 27);
+            this.button3.Location = new System.Drawing.Point(260, 27);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(20, 20);
-            this.button3.TabIndex = 40;
+            this.button3.TabIndex = 2;
             this.button3.Text = "▶";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
@@ -1126,10 +1170,10 @@
             // 
             this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.Location = new System.Drawing.Point(206, 27);
+            this.button4.Location = new System.Drawing.Point(286, 27);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(20, 20);
-            this.button4.TabIndex = 41;
+            this.button4.TabIndex = 3;
             this.button4.Text = "▲";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
@@ -1138,10 +1182,10 @@
             // 
             this.button5.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.button5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button5.Location = new System.Drawing.Point(232, 27);
+            this.button5.Location = new System.Drawing.Point(312, 27);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(20, 20);
-            this.button5.TabIndex = 42;
+            this.button5.TabIndex = 4;
             this.button5.Text = "▼";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
@@ -1149,11 +1193,11 @@
             // trackBar1
             // 
             this.trackBar1.LargeChange = 4;
-            this.trackBar1.Location = new System.Drawing.Point(605, 623);
+            this.trackBar1.Location = new System.Drawing.Point(578, 622);
             this.trackBar1.Maximum = 31;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(64, 45);
-            this.trackBar1.TabIndex = 43;
+            this.trackBar1.TabIndex = 46;
             this.trackBar1.TickFrequency = 3;
             this.trackBar1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseMove);
             this.trackBar1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar1_MouseUp);
@@ -1161,11 +1205,11 @@
             // trackBar2
             // 
             this.trackBar2.LargeChange = 4;
-            this.trackBar2.Location = new System.Drawing.Point(673, 623);
+            this.trackBar2.Location = new System.Drawing.Point(646, 622);
             this.trackBar2.Maximum = 31;
             this.trackBar2.Name = "trackBar2";
             this.trackBar2.Size = new System.Drawing.Size(64, 45);
-            this.trackBar2.TabIndex = 44;
+            this.trackBar2.TabIndex = 47;
             this.trackBar2.TickFrequency = 3;
             this.trackBar2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar2_MouseMove);
             this.trackBar2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar2_MouseUp);
@@ -1173,11 +1217,11 @@
             // trackBar3
             // 
             this.trackBar3.LargeChange = 4;
-            this.trackBar3.Location = new System.Drawing.Point(741, 623);
+            this.trackBar3.Location = new System.Drawing.Point(714, 622);
             this.trackBar3.Maximum = 31;
             this.trackBar3.Name = "trackBar3";
             this.trackBar3.Size = new System.Drawing.Size(64, 45);
-            this.trackBar3.TabIndex = 45;
+            this.trackBar3.TabIndex = 48;
             this.trackBar3.TickFrequency = 3;
             this.trackBar3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseMove);
             this.trackBar3.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBar3_MouseUp);
@@ -1188,7 +1232,7 @@
             this.label8.Location = new System.Drawing.Point(640, 31);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(24, 13);
-            this.label8.TabIndex = 46;
+            this.label8.TabIndex = 14;
             this.label8.Text = "8x8";
             //
             // hScrollMap
@@ -1197,7 +1241,7 @@
             this.hScrollMap.Location = new System.Drawing.Point(12, 560);
             this.hScrollMap.Name = "hScrollMap";
             this.hScrollMap.Size = new System.Drawing.Size(512, 17);
-            this.hScrollMap.TabIndex = 60;
+            this.hScrollMap.TabIndex = 21;
             this.hScrollMap.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollMap_Scroll);
             //
             // vScrollMap
@@ -1206,17 +1250,17 @@
             this.vScrollMap.Location = new System.Drawing.Point(525, 47);
             this.vScrollMap.Name = "vScrollMap";
             this.vScrollMap.Size = new System.Drawing.Size(17, 512);
-            this.vScrollMap.TabIndex = 61;
+            this.vScrollMap.TabIndex = 17;
             this.vScrollMap.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollMap_Scroll);
             //
             // buttonZoomIn
             //
             this.buttonZoomIn.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.buttonZoomIn.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.buttonZoomIn.Location = new System.Drawing.Point(262, 27);
+            this.buttonZoomIn.Location = new System.Drawing.Point(342, 27);
             this.buttonZoomIn.Name = "buttonZoomIn";
             this.buttonZoomIn.Size = new System.Drawing.Size(20, 20);
-            this.buttonZoomIn.TabIndex = 62;
+            this.buttonZoomIn.TabIndex = 5;
             this.buttonZoomIn.Text = "+";
             this.buttonZoomIn.UseVisualStyleBackColor = true;
             this.buttonZoomIn.Click += new System.EventHandler(this.buttonZoomIn_Click);
@@ -1225,10 +1269,10 @@
             //
             this.buttonZoomOut.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.buttonZoomOut.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.buttonZoomOut.Location = new System.Drawing.Point(288, 27);
+            this.buttonZoomOut.Location = new System.Drawing.Point(368, 27);
             this.buttonZoomOut.Name = "buttonZoomOut";
             this.buttonZoomOut.Size = new System.Drawing.Size(20, 20);
-            this.buttonZoomOut.TabIndex = 63;
+            this.buttonZoomOut.TabIndex = 6;
             this.buttonZoomOut.Text = "−";
             this.buttonZoomOut.UseVisualStyleBackColor = true;
             this.buttonZoomOut.Click += new System.EventHandler(this.buttonZoomOut_Click);
@@ -1236,17 +1280,17 @@
             // labelZoom
             //
             this.labelZoom.AutoSize = true;
-            this.labelZoom.Location = new System.Drawing.Point(314, 31);
+            this.labelZoom.Location = new System.Drawing.Point(394, 31);
             this.labelZoom.Name = "labelZoom";
             this.labelZoom.Size = new System.Drawing.Size(18, 13);
-            this.labelZoom.TabIndex = 64;
+            this.labelZoom.TabIndex = 9;
             this.labelZoom.Text = "1x";
             //
             // Form1
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(824, 692);
+            this.ClientSize = new System.Drawing.Size(824, 700);
             this.Controls.Add(this.labelZoom);
             this.Controls.Add(this.buttonZoomOut);
             this.Controls.Add(this.buttonZoomIn);
@@ -1268,8 +1312,11 @@
             this.Controls.Add(this.label16);
             this.Controls.Add(this.textBox6);
             this.Controls.Add(this.label15);
+            this.Controls.Add(this.checkBox8);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.checkBox5);
+            this.Controls.Add(this.labelSelectedTile);
+            this.Controls.Add(this.labelMapBrush);
             this.Controls.Add(this.checkBox4);
             this.Controls.Add(this.textBox5);
             this.Controls.Add(this.label14);
@@ -1300,7 +1347,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1000, 800);
-            this.MinimumSize = new System.Drawing.Size(840, 730);
+            this.MinimumSize = new System.Drawing.Size(840, 738);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "M1TE - SNES Mode 1 Tile Editor ver 3.7";
@@ -1344,10 +1391,13 @@
         private System.Windows.Forms.CheckBox checkBox2;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label labelSelectedTile;
+        private System.Windows.Forms.Label labelMapBrush;
         private System.Windows.Forms.TextBox textBox5;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.CheckBox checkBox6;
+        private System.Windows.Forms.CheckBox checkBox8;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Label label16;
@@ -1405,6 +1455,7 @@
         private System.Windows.Forms.ToolStripMenuItem set82bppToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutM1TEToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem shortcutsToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.Button button1;

@@ -62,9 +62,15 @@ namespace M1TE2
         public static Bitmap cool_bmp = new Bitmap(256, 256); //import
         public static int pal_x, pal_y, tile_x, tile_y, tile_num, tile_set;
         public static int map_view, active_map_x, active_map_y, active_map_index;
-        // Preview overlay: render the full layer composite while still editing the
-        // active BG (map_view stays 0/1/2). 0 = off, 3 = order 1/2/3, 4 = order 3/1/2.
+        // Preview overlay: render the full 3-layer composite while still editing the
+        // active BG (map_view stays 0/1/2). 0 = off, 1 = on. The composite paints by
+        // SNES Mode-1 priority band (see DrawLayerBand), so it honours the per-tile
+        // priority bit instead of a fixed whole-layer order.
         public static int preview_overlay;
+        // BG3 priority bit ($2105.3 / BGMODE bit 3): when set, a BG3 tile's priority-1
+        // band floats to the very front (and BG3 priority-0 stays at the very back);
+        // when clear, all of BG3 sits behind BG1/BG2. Only affects the composite preview.
+        public static bool bg3_high_priority = false;
         public static int map_height = 28;
         public static int map_width = 32;   // active map width in tiles (32 or 64)
         // display pixels per tile on the big map box; recomputed each redraw from
@@ -170,6 +176,7 @@ namespace M1TE2
         public static int erase_palette = 0;  // palette value (same encoding as Maps.palette)
         public static int erase_hflip = 0;
         public static int erase_vflip = 0;
+        public static int erase_priority = 0;
 
         public readonly int[,] BAYER_MATRIX =
         {
@@ -289,13 +296,39 @@ namespace M1TE2
             }
 
             active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
-            int value = Maps.palette[active_map_index];
-            textBox5.Text = value.ToString();
-            checkBox1.Checked = (Maps.h_flip[active_map_index] != 0);
-            checkBox2.Checked = (Maps.v_flip[active_map_index] != 0);
-            checkBox3.Checked = (Maps.priority[active_map_index] != 0);
+            RefreshSelectedTileAttrs(); // H/V/Priority/Palette of the selection's top-left tile
 
             common_update2();
+        }
+
+        // The current map selection rectangle (tiles), high bound exclusive: the ME
+        // box in map-edit mode, otherwise the single active (white-box) tile. Lets the
+        // H Flip / V Flip / Priority / Palette editors behave the same in every brush mode.
+        private void GetMapSelection(out int x1, out int y1, out int x2, out int y2)
+        {
+            if (brushsize == BRUSH_MAP_ED)
+            {
+                x1 = ME_x1; y1 = ME_y1; x2 = ME_x2; y2 = ME_y2;
+            }
+            else
+            {
+                x1 = active_map_x; y1 = active_map_y; x2 = x1 + 1; y2 = y1 + 1;
+            }
+        }
+
+        // Show the top-left selected tile's attributes in the H Flip / V Flip /
+        // Priority checkboxes and the Palette box (display only; this is the per-tile
+        // palette value box, not the right-column palette selector).
+        public void RefreshSelectedTileAttrs()
+        {
+            if (map_view > 2) return;
+            int x1, y1, x2, y2;
+            GetMapSelection(out x1, out y1, out x2, out y2);
+            int idx = Maps.Idx(map_view, x1, y1);
+            checkBox1.Checked = (Maps.h_flip[idx] != 0);
+            checkBox2.Checked = (Maps.v_flip[idx] != 0);
+            checkBox3.Checked = (Maps.priority[idx] != 0);
+            textBox5.Text = Maps.palette[idx].ToString();
         }
 
 
@@ -355,7 +388,6 @@ namespace M1TE2
             int offset = 0;
             int temp_tile = 0;
             int temp_pal = 0;
-            int z2 = 0;
 
             // clear the native render area (map_width x map_height tiles at 8 px) to colour 0
             using (Graphics gbg = Graphics.FromImage(image_map_local))
@@ -364,64 +396,9 @@ namespace M1TE2
 
             if (preview_overlay != 0) // composite overlay (editing still targets map_view)
             {
-                // draw all the maps, layered, with color 0 transparent
-                // and draw them all together
-                if (preview_overlay == 3) // 1,2,3 = draw the 3rd in the back
-                {
-                    z2 = 2 * Maps.LAYER; // offset for current map
-                    for (int y = 0; y < map_height; y++)
-                    {
-                        for (int x = 0; x < map_width; x++)
-                        {
-                            offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-                            temp_tile = ((Maps.tile[offset] + 0x400) * 8 * 8); // base offset for tile                                                               // the 2bpp uses the 5th set of 256 tiles
-                            temp_pal = (Maps.palette[offset] * 4); // beginning of this palette
-
-                            big_sub(offset, x, y, temp_tile, temp_pal);
-                        }
-                    }
-                }
-                // now draw the 2nd
-                z2 = 1 * Maps.LAYER; // offset for current map
-                for (int y = 0; y < map_height; y++)
-                {
-                    for (int x = 0; x < map_width; x++)
-                    {
-                        offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-
-                        temp_tile = (Maps.tile[offset] * 8 * 8); // base offset for tile
-                        temp_pal = (Maps.palette[offset] * 16); // beginning of this palette
-                        big_sub(offset, x, y, temp_tile, temp_pal);
-                    }
-                }
-                // now draw the 1st
-                z2 = 0; // offset for current map
-                for (int y = 0; y < map_height; y++)
-                {
-                    for (int x = 0; x < map_width; x++)
-                    {
-                        offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-
-                        temp_tile = (Maps.tile[offset] * 8 * 8); // base offset for tile
-                        temp_pal = (Maps.palette[offset] * 16); // beginning of this palette
-                        big_sub(offset, x, y, temp_tile, temp_pal);
-                    }
-                }
-                if (preview_overlay == 4) // 3,1,2 = draw the 3rd in the front
-                {
-                    z2 = 2 * Maps.LAYER; // offset for current map
-                    for (int y = 0; y < map_height; y++)
-                    {
-                        for (int x = 0; x < map_width; x++)
-                        {
-                            offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-                            temp_tile = ((Maps.tile[offset] + 0x400) * 8 * 8); // base offset for tile                                                               // the 2bpp uses the 5th set of 256 tiles
-                            temp_pal = (Maps.palette[offset] * 4); // beginning of this palette
-
-                            big_sub(offset, x, y, temp_tile, temp_pal);
-                        }
-                    }
-                }
+                // hardware-accurate composite: paint by Mode-1 priority band so the
+                // per-tile priority bit interleaves the layers (see DrawComposite)
+                DrawComposite(false);
             }
 
 
@@ -579,7 +556,6 @@ namespace M1TE2
             int offset = 0;
             int temp_tile = 0;
             int temp_pal = 0;
-            int z2 = 0;
 
             // clear the native render area (map_width x map_height tiles at 16 px) to colour 0
             using (Graphics gbg = Graphics.FromImage(image_map_local))
@@ -588,64 +564,8 @@ namespace M1TE2
 
             if (preview_overlay != 0) // composite overlay (editing still targets map_view)
             {
-                // draw all the maps, layered, with color 0 transparent
-                // and draw them all together
-                if (preview_overlay == 3) // 1,2,3 = draw the 3rd in the back
-                {
-                    z2 = 2 * Maps.LAYER; // offset for current map
-                    for (int y = 0; y < map_height; y++)
-                    {
-                        for (int x = 0; x < map_width; x++)
-                        {
-                            offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-                            temp_tile = ((Maps.tile[offset] + 0x400) * 8 * 8); // base offset for tile                                                               // the 2bpp uses the 5th set of 256 tiles
-                            temp_pal = (Maps.palette[offset] * 4); // beginning of this palette
-
-                            big_sub16(offset, x, y, temp_tile, temp_pal);
-                        }
-                    }
-                }
-                // now draw the 2nd
-                z2 = 1 * Maps.LAYER; // offset for current map
-                for (int y = 0; y < map_height; y++)
-                {
-                    for (int x = 0; x < map_width; x++)
-                    {
-                        offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-
-                        temp_tile = (Maps.tile[offset] * 8 * 8); // base offset for tile
-                        temp_pal = (Maps.palette[offset] * 16); // beginning of this palette
-                        big_sub16(offset, x, y, temp_tile, temp_pal);
-                    }
-                }
-                // now draw the 1st
-                z2 = 0; // offset for current map
-                for (int y = 0; y < map_height; y++)
-                {
-                    for (int x = 0; x < map_width; x++)
-                    {
-                        offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-
-                        temp_tile = (Maps.tile[offset] * 8 * 8); // base offset for tile
-                        temp_pal = (Maps.palette[offset] * 16); // beginning of this palette
-                        big_sub16(offset, x, y, temp_tile, temp_pal);
-                    }
-                }
-                if (preview_overlay == 4) // 3,1,2 = draw the 3rd in the front
-                {
-                    z2 = 2 * Maps.LAYER; // offset for current map
-                    for (int y = 0; y < map_height; y++)
-                    {
-                        for (int x = 0; x < map_width; x++)
-                        {
-                            offset = z2 + (y * Maps.W) + x; // offset to current tile on the map
-                            temp_tile = ((Maps.tile[offset] + 0x400) * 8 * 8); // base offset for tile                                                               // the 2bpp uses the 5th set of 256 tiles
-                            temp_pal = (Maps.palette[offset] * 4); // beginning of this palette
-
-                            big_sub16(offset, x, y, temp_tile, temp_pal);
-                        }
-                    }
-                }
+                // hardware-accurate composite, 16x16 cells (see DrawComposite)
+                DrawComposite(true);
             }
 
 
@@ -1001,6 +921,86 @@ namespace M1TE2
         // END TILEMAP SUB 16x16 tiles
 
 
+        // Draw one SNES Mode-1 priority band of one layer (8x8 path): only the cells
+        // whose priority bit == wantPriority, colour 0 transparent. The composite
+        // preview calls these back-to-front (see update_tilemap) so per-tile priority
+        // interleaves the layers exactly as the PPU would. layer 2 (BG3) is 2bpp.
+        private void DrawLayerBand(int layer, int wantPriority)
+        {
+            int z = layer * Maps.LAYER;
+            bool is2bpp = (layer == 2);
+            for (int y = 0; y < map_height; y++)
+            {
+                for (int x = 0; x < map_width; x++)
+                {
+                    int offset = z + (y * Maps.W) + x;
+                    if (Maps.priority[offset] != wantPriority) continue;
+                    int temp_tile, temp_pal;
+                    if (is2bpp)
+                    {
+                        temp_tile = (Maps.tile[offset] + 0x400) * 8 * 8; // 2bpp uses the 5th set of 256 tiles
+                        temp_pal = Maps.palette[offset] * 4;
+                    }
+                    else
+                    {
+                        temp_tile = Maps.tile[offset] * 8 * 8;
+                        temp_pal = Maps.palette[offset] * 16;
+                    }
+                    big_sub(offset, x, y, temp_tile, temp_pal);
+                }
+            }
+        }
+
+        // 16x16 twin of DrawLayerBand (calls big_sub16).
+        private void DrawLayerBand16(int layer, int wantPriority)
+        {
+            int z = layer * Maps.LAYER;
+            bool is2bpp = (layer == 2);
+            for (int y = 0; y < map_height; y++)
+            {
+                for (int x = 0; x < map_width; x++)
+                {
+                    int offset = z + (y * Maps.W) + x;
+                    if (Maps.priority[offset] != wantPriority) continue;
+                    int temp_tile, temp_pal;
+                    if (is2bpp)
+                    {
+                        temp_tile = (Maps.tile[offset] + 0x400) * 8 * 8;
+                        temp_pal = Maps.palette[offset] * 4;
+                    }
+                    else
+                    {
+                        temp_tile = Maps.tile[offset] * 8 * 8;
+                        temp_pal = Maps.palette[offset] * 16;
+                    }
+                    big_sub16(offset, x, y, temp_tile, temp_pal);
+                }
+            }
+        }
+
+        // Paint the 3-layer composite in SNES Mode-1 back-to-front order, honouring
+        // the per-tile priority bit. With the BG3 priority bit clear all of BG3 sits
+        // behind BG1/BG2; with it set, BG3's priority-1 band jumps to the very front.
+        // `draw16` selects the 16x16 cell renderer. BG1 always beats BG2 within a band.
+        private void DrawComposite(bool draw16)
+        {
+            System.Action<int, int> band = draw16 ? (System.Action<int, int>)DrawLayerBand16 : DrawLayerBand;
+            if (bg3_high_priority)
+            {
+                // back -> front: BG3.0, BG2.0, BG1.0, BG2.1, BG1.1, BG3.1
+                band(2, 0); band(1, 0); band(0, 0);
+                band(1, 1); band(0, 1); band(2, 1);
+            }
+            else
+            {
+                // back -> front: BG3.0, BG3.1, BG2.0, BG1.0, BG2.1, BG1.1
+                band(2, 0); band(2, 1);
+                band(1, 0); band(0, 0);
+                band(1, 1); band(0, 1);
+            }
+        }
+
+
 
 
 
@@ -1052,16 +1052,9 @@ namespace M1TE2
 
 
             sum = ((value_red & 0xf8) >> 3) + ((value_green & 0xf8) << 2) + ((value_blue & 0xf8) << 7);
-            string hexValue = sum.ToString("X");
-            // may have to append zeros to beginning
-
-
-            if (hexValue.Length == 3) hexValue = String.Concat("0", hexValue);
-            else if (hexValue.Length == 2) hexValue = String.Concat("00", hexValue);
-            else if (hexValue.Length == 1) hexValue = String.Concat("000", hexValue);
-            else if (hexValue.Length == 0) hexValue = "0000";
-
-            textBox4.Text = hexValue;
+            // SNES colours are 15-bit BGR555, so the packed value is 0x0000-0x7FFF:
+            // always 4 hex digits (zero-padded).
+            textBox4.Text = sum.ToString("X4");
         }
 
 
@@ -1678,10 +1671,13 @@ namespace M1TE2
 
             int flip_x_status = 0;
             int flip_y_status = 0;
+            int priority_status = 0;
             if (checkBox5.Checked == true) flip_x_status = 1;
             if (checkBox6.Checked == true) flip_y_status = 1;
+            if (checkBox8.Checked == true) priority_status = 1; // "Apply Priority" brush
             checkBox1.Checked = checkBox5.Checked;
             checkBox2.Checked = checkBox6.Checked;
+            checkBox3.Checked = checkBox8.Checked;
             int pal_value = 0;
             if (map_view == 2) // 2bpp mode
             {
@@ -1714,7 +1710,7 @@ namespace M1TE2
                             Maps.tile[actual_map_num] = actual_tile_num;
                             Maps.h_flip[actual_map_num] = flip_x_status;
                             Maps.v_flip[actual_map_num] = flip_y_status;
-                            //Maps.priority[actual_map_num] = 0;
+                            Maps.priority[actual_map_num] = priority_status;
                         }
 
                         Maps.palette[actual_map_num] = pal_value;
@@ -1741,14 +1737,14 @@ namespace M1TE2
                             Maps.tile[actual_map_num] = actual_tile_num;
                             Maps.h_flip[actual_map_num] = flip_x_status;
                             Maps.v_flip[actual_map_num] = flip_y_status;
-                            //Maps.priority[actual_map_num] = 0;
+                            Maps.priority[actual_map_num] = priority_status;
                         }
 
                         Maps.palette[actual_map_num] = pal_value;
                     }
                 }
             }
-            
+
 
             // just redraw the entire map. It's a bit slow.
             update_tilemap();
@@ -1889,7 +1885,7 @@ namespace M1TE2
                     Maps.palette[active_map_index] = Maps.palette[active_map_index2];
                     Maps.h_flip[active_map_index] = Maps.h_flip[active_map_index2];
                     Maps.v_flip[active_map_index] = Maps.v_flip[active_map_index2];
-                    //Maps.priority[active_map_index] = Maps.priority[active_map_index2];
+                    Maps.priority[active_map_index] = Maps.priority[active_map_index2];
 
 
 
@@ -2002,10 +1998,13 @@ namespace M1TE2
 
             int flip_x_status = 0;
             int flip_y_status = 0;
+            int priority_status = 0;
             if (checkBox5.Checked == true) flip_x_status = 1;
             if (checkBox6.Checked == true) flip_y_status = 1;
+            if (checkBox8.Checked == true) priority_status = 1; // "Apply Priority" brush
             checkBox1.Checked = checkBox5.Checked;
             checkBox2.Checked = checkBox6.Checked;
+            checkBox3.Checked = checkBox8.Checked;
             int pal_value = 0;
             if (map_view == 2) // 2bpp mode
             {
@@ -2037,8 +2036,7 @@ namespace M1TE2
                             Maps.tile[active_map_index] = tile_num2;
                             Maps.h_flip[active_map_index] = flip_x_status;
                             Maps.v_flip[active_map_index] = flip_y_status;
-                            // other attributes moved above
-                            // Maps.priority[active_map_index] = 0; // not used
+                            Maps.priority[active_map_index] = priority_status;
                         }
 
 
@@ -2305,6 +2303,7 @@ namespace M1TE2
                     ME_y2 = ME_y1 + 1;
                     ME_x_cur = ME_x1;
                     ME_y_cur = ME_y1;
+                    RefreshSelectedTileAttrs(); // show the newly selected tile's H/V/Priority/Palette
                     update_tilemap();
                     return;
                 }
@@ -2331,7 +2330,7 @@ namespace M1TE2
             else if (e.Button == MouseButtons.Right) // get the tile, tileset, and properties
             {
                 int tile = (map_view * Maps.LAYER) + (Maps.W * active_map_y) + active_map_x;
-                ApplyPickedTile(Maps.tile[tile], Maps.palette[tile], Maps.h_flip[tile], Maps.v_flip[tile]);
+                ApplyPickedTile(Maps.tile[tile], Maps.palette[tile], Maps.h_flip[tile], Maps.v_flip[tile], Maps.priority[tile]);
             }
 
         } // end tilemap
@@ -2339,15 +2338,17 @@ namespace M1TE2
         // Apply a picked tilemap entry as the current brush selection: set the
         // tile / tileset / palette / flip globals and refresh the UI. Shared by the
         // map right-click eyedropper and the erase-tile preview's right-click.
-        private void ApplyPickedTile(int tileVal, int palVal, int hflip, int vflip)
+        private void ApplyPickedTile(int tileVal, int palVal, int hflip, int vflip, int priority)
         {
             textBox5.Text = palVal.ToString();
             checkBox1.Checked = (hflip != 0);
             checkBox2.Checked = (vflip != 0);
-            // also adopt the tile's flip as the brush flip, so future tile
-            // placements use it (same as picking up the tile's palette)
+            checkBox3.Checked = (priority != 0);
+            // also adopt the tile's flip + priority as the brush state, so future
+            // tile placements use it (same as picking up the tile's palette)
             checkBox5.Checked = (hflip != 0);
             checkBox6.Checked = (vflip != 0);
+            checkBox8.Checked = (priority != 0);
             int set = (tileVal & 0x300) >> 8;
             int tile2 = tileVal & 0xff;
             tile_x = tile2 & 0x0f;
@@ -2562,7 +2563,9 @@ namespace M1TE2
                     temp = Maps.v_flip[left];
                     Maps.v_flip[left] = Maps.v_flip[right];
                     Maps.v_flip[right] = temp;
-                    //skip priority
+                    temp = Maps.priority[left];
+                    Maps.priority[left] = Maps.priority[right];
+                    Maps.priority[right] = temp;
                 }
             }
         }
@@ -2594,7 +2597,9 @@ namespace M1TE2
                     temp = Maps.v_flip[top] ^ 1;
                     Maps.v_flip[top] = Maps.v_flip[bottom] ^ 1;
                     Maps.v_flip[bottom] = temp;
-                    //skip priority
+                    temp = Maps.priority[top];
+                    Maps.priority[top] = Maps.priority[bottom];
+                    Maps.priority[bottom] = temp;
                 }
             }
         }
@@ -2614,7 +2619,7 @@ namespace M1TE2
                     Maps.palette[index] = erase_palette;
                     Maps.h_flip[index] = erase_hflip;
                     Maps.v_flip[index] = erase_vflip;
-                    // skip priority
+                    Maps.priority[index] = erase_priority;
                 }
             }
         }
@@ -2630,7 +2635,7 @@ namespace M1TE2
                 MapsC.palette[i] = Maps.palette[tile_was];
                 MapsC.h_flip[i] = Maps.h_flip[tile_was];
                 MapsC.v_flip[i] = Maps.v_flip[tile_was];
-                // skip priority
+                MapsC.priority[i] = Maps.priority[tile_was];
             }
             // remember the size of the copy
             ME_x1_c = ME_x1;
@@ -2662,7 +2667,7 @@ namespace M1TE2
                     Maps.palette[tile_is] = MapsC.palette[tile_was];
                     Maps.h_flip[tile_is] = MapsC.h_flip[tile_was];
                     Maps.v_flip[tile_is] = MapsC.v_flip[tile_was];
-                    // skip priority
+                    Maps.priority[tile_is] = MapsC.priority[tile_was];
 
                 }
             }
@@ -2684,8 +2689,10 @@ namespace M1TE2
 
             int flip_x_status = 0;
             int flip_y_status = 0;
+            int priority_status = 0;
             if (checkBox5.Checked == true) flip_x_status = 1;
             if (checkBox6.Checked == true) flip_y_status = 1;
+            if (checkBox8.Checked == true) priority_status = 1; // "Apply Priority" brush
 
             for(int y1 = ME_y1; y1 < ME_y2; y1++)
             {
@@ -2698,7 +2705,7 @@ namespace M1TE2
                     Maps.tile[tile_is] = tile_num2;
                     Maps.h_flip[tile_is] = flip_x_status;
                     Maps.v_flip[tile_is] = flip_y_status;
-                    // skip priority
+                    Maps.priority[tile_is] = priority_status;
                 }
             }
         }
@@ -2822,13 +2829,14 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.D4)
             {
-                set_bg_view(3); // Preview 1/2/3
+                set_bg_view(3); // Preview (3/2/1)
             }
             else if (e.KeyCode == Keys.D5)
             {
-                set_bg_view(4); // Preview 3/1/2
+                set_bg_view(4); // Preview (3/2/1/3 priority)
             }
 
+            RefreshSelectedTileAttrs(); // keep H/V/Priority/Palette in sync with the selected tile
             common_update2();
             // prevent change in focus
             label5.Focus();
@@ -3042,13 +3050,14 @@ namespace M1TE2
             }
             else if (e.KeyCode == Keys.D4)
             {
-                set_bg_view(3); // Preview 1/2/3
+                set_bg_view(3); // Preview (3/2/1)
             }
             else if (e.KeyCode == Keys.D5)
             {
-                set_bg_view(4); // Preview 3/1/2
+                set_bg_view(4); // Preview (3/2/1/3 priority)
             }
 
+            RefreshSelectedTileAttrs(); // keep H/V/Priority/Palette in sync with the selected tile
             common_update2();
             // prevent change in focus
             label5.Focus();
@@ -3082,6 +3091,7 @@ namespace M1TE2
             else erase_palette = pal_y;                                    // 4bpp
             erase_hflip = checkBox5.Checked ? 1 : 0;
             erase_vflip = checkBox6.Checked ? 1 : 0;
+            erase_priority = checkBox8.Checked ? 1 : 0;
             RedrawEraseTilePreview();
             label5.Focus(); // hand focus back to the map so keyboard shortcuts work
         }
@@ -3091,7 +3101,7 @@ namespace M1TE2
         {
             if (e.Button == MouseButtons.Right)
             {
-                ApplyPickedTile(erase_tile, erase_palette, erase_hflip, erase_vflip);
+                ApplyPickedTile(erase_tile, erase_palette, erase_hflip, erase_vflip, erase_priority);
             }
         }
 
@@ -3909,6 +3919,15 @@ namespace M1TE2
             label5.Focus();
         }
 
+        private void checkBox8_Click(object sender, EventArgs e)
+        { // apply priority (brush): stamp this priority bit on painted tiles
+            if (brushsize == BRUSH_MAP_ED)
+            {
+                checkBox8.Checked = false;
+            }
+            label5.Focus();
+        }
+
         private void x8TilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             x8TilesToolStripMenuItem.Checked = true;
@@ -4074,29 +4093,28 @@ namespace M1TE2
         }
 
         private void checkBox3_Click(object sender, EventArgs e)
-        {
-            // priority (entire map)
+        { // Priority — edits the selected map tile(s); the composite preview renders it
             if (map_view > 2) return;
 
             Checkpoint();
 
-            int offset = map_view * Maps.LAYER;
-            if (checkBox3.Checked == false)
+            int val = checkBox3.Checked ? 1 : 0;
+            if (brushsize == BRUSH_MAP_ED)
             {
-                for (int i = 0; i < Maps.LAYER; i++)
-                {
-                    Maps.priority[offset++] = 0;
-                }
+                // priority has no position component, so just set it on every selected tile
+                int offset = map_view * Maps.LAYER;
+                for (int y = ME_y1; y < ME_y2; y++)
+                    for (int x = ME_x1; x < ME_x2; x++)
+                        Maps.priority[offset + (y * Maps.W) + x] = val;
             }
             else
             {
-                for (int i = 0; i < Maps.LAYER; i++)
-                {
-                    Maps.priority[offset++] = 1;
-                }
+                active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
+                Maps.priority[active_map_index] = val;
             }
 
-            //this tool doesn't show priority differences
+            update_tilemap();
+            RefreshSelectedTileAttrs();
             label5.Focus();
         }
 
@@ -4557,7 +4575,7 @@ namespace M1TE2
                         Maps.palette[map_offset2] = pal_sel;
                         Maps.h_flip[map_offset2] = 0;
                         Maps.v_flip[map_offset2] = 0;
-                        //Maps.priority[map_offset2] = 0;
+                        Maps.priority[map_offset2] = 0;
                     }
                 }
             }
@@ -4584,7 +4602,7 @@ namespace M1TE2
                         Maps.palette[map_offset2] = pal_sel;
                         Maps.h_flip[map_offset2] = 0;
                         Maps.v_flip[map_offset2] = 0;
-                        //Maps.priority[map_offset2] = 0;
+                        Maps.priority[map_offset2] = 0;
                     }
                 }
             }
@@ -4824,7 +4842,7 @@ namespace M1TE2
                         Maps.palette[i + map_offset] = pal_sel;
                         Maps.h_flip[i + map_offset] = 0;
                         Maps.v_flip[i + map_offset] = 0;
-                        //Maps.priority[i + map_offset] = 0;
+                        Maps.priority[i + map_offset] = 0;
                     }
                     // each 128x128 block separately
                     tile_is = 0;
@@ -4934,6 +4952,7 @@ namespace M1TE2
                                 Maps.palette[m_offset2] = 0;
                                 Maps.h_flip[m_offset2] = 0;
                                 Maps.v_flip[m_offset2] = 0;
+                                Maps.priority[m_offset2] = 0;
                             }
                         }
                         for (int y = 16; y < 32; y++)
@@ -4945,6 +4964,7 @@ namespace M1TE2
                                 Maps.palette[m_offset2] = 0;
                                 Maps.h_flip[m_offset2] = 0;
                                 Maps.v_flip[m_offset2] = 0;
+                                Maps.priority[m_offset2] = 0;
                             }
                         }
                     }
@@ -5013,7 +5033,7 @@ namespace M1TE2
 
         private void button2_Click(object sender, EventArgs e)
         { // shift map left
-            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip;//, temp_priority;
+            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip, temp_priority;
             int temp_offset2;
             if (map_view > 2) return;
             temp_offset = Maps.LAYER * map_view;
@@ -5028,7 +5048,7 @@ namespace M1TE2
                 temp_palette = Maps.palette[temp_offset2];
                 temp_h_flip = Maps.h_flip[temp_offset2];
                 temp_v_flip = Maps.v_flip[temp_offset2];
-                //temp_priority = Maps.priority[temp_offset2];
+                temp_priority = Maps.priority[temp_offset2];
 
                 for (int xx = 0; xx < map_width - 1; xx++)
                 {
@@ -5037,14 +5057,14 @@ namespace M1TE2
                     Maps.palette[temp_offset2 + xx] = Maps.palette[temp_offset2 + xx + 1];
                     Maps.h_flip[temp_offset2 + xx] = Maps.h_flip[temp_offset2 + xx + 1];
                     Maps.v_flip[temp_offset2 + xx] = Maps.v_flip[temp_offset2 + xx + 1];
-                    //Maps.priority[temp_offset2 + xx] = Maps.priority[temp_offset2 + xx + 1];
+                    Maps.priority[temp_offset2 + xx] = Maps.priority[temp_offset2 + xx + 1];
                 }
                 // put left most column on right
                 Maps.tile[temp_offset2 + map_width - 1] = temp_tile;
                 Maps.palette[temp_offset2 + map_width - 1] = temp_palette;
                 Maps.h_flip[temp_offset2 + map_width - 1] = temp_h_flip;
                 Maps.v_flip[temp_offset2 + map_width - 1] = temp_v_flip;
-                //Maps.priority[temp_offset2 + map_width - 1] = temp_priority;
+                Maps.priority[temp_offset2 + map_width - 1] = temp_priority;
             }
             common_update2();
             label5.Focus();
@@ -5052,7 +5072,7 @@ namespace M1TE2
 
         private void button3_Click(object sender, EventArgs e)
         { // shift map right
-            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip;//, temp_priority;
+            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip, temp_priority;
             int temp_offset2;
             if (map_view > 2) return;
             temp_offset = Maps.LAYER * map_view;
@@ -5067,7 +5087,7 @@ namespace M1TE2
                 temp_palette = Maps.palette[temp_offset2 + (map_width - 1)];
                 temp_h_flip = Maps.h_flip[temp_offset2 + (map_width - 1)];
                 temp_v_flip = Maps.v_flip[temp_offset2 + (map_width - 1)];
-                //temp_priority = Maps.priority[temp_offset2 + (map_width - 1)];
+                temp_priority = Maps.priority[temp_offset2 + (map_width - 1)];
 
                 for (int xx = map_width - 2; xx >= 0; xx--)
                 {
@@ -5076,14 +5096,14 @@ namespace M1TE2
                     Maps.palette[temp_offset2 + xx + 1] = Maps.palette[temp_offset2 + xx];
                     Maps.h_flip[temp_offset2 + xx + 1] = Maps.h_flip[temp_offset2 + xx];
                     Maps.v_flip[temp_offset2 + xx + 1] = Maps.v_flip[temp_offset2 + xx];
-                    //Maps.priority[temp_offset2 + xx + 1] = Maps.priority[temp_offset2 + xx];
+                    Maps.priority[temp_offset2 + xx + 1] = Maps.priority[temp_offset2 + xx];
                 }
                 // put right most column on left
                 Maps.tile[temp_offset2] = temp_tile;
                 Maps.palette[temp_offset2] = temp_palette;
                 Maps.h_flip[temp_offset2] = temp_h_flip;
                 Maps.v_flip[temp_offset2] = temp_v_flip;
-                //Maps.priority[temp_offset2] = temp_priority;
+                Maps.priority[temp_offset2] = temp_priority;
             }
             common_update2();
             label5.Focus();
@@ -5091,7 +5111,7 @@ namespace M1TE2
 
         private void button4_Click(object sender, EventArgs e)
         { // shift map up
-            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip; //, temp_priority;
+            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip, temp_priority;
             int temp_offset2, temp_offset3;
             if (map_view > 2) return;
             temp_offset = Maps.LAYER * map_view;
@@ -5106,7 +5126,7 @@ namespace M1TE2
                 temp_palette = Maps.palette[temp_offset2];
                 temp_h_flip = Maps.h_flip[temp_offset2];
                 temp_v_flip = Maps.v_flip[temp_offset2];
-                //temp_priority = Maps.priority[temp_offset2];
+                temp_priority = Maps.priority[temp_offset2];
 
                 for (int yy = 0; yy < map_height - 1; yy++)
                 {
@@ -5116,14 +5136,14 @@ namespace M1TE2
                     Maps.palette[temp_offset3] = Maps.palette[temp_offset3 + Maps.W];
                     Maps.h_flip[temp_offset3] = Maps.h_flip[temp_offset3 + Maps.W];
                     Maps.v_flip[temp_offset3] = Maps.v_flip[temp_offset3 + Maps.W];
-                    //Maps.priority[temp_offset3] = Maps.priority[temp_offset3 + Maps.W];
+                    Maps.priority[temp_offset3] = Maps.priority[temp_offset3 + Maps.W];
                 }
                 // put top most row on bottom
                 Maps.tile[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_tile;
                 Maps.palette[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_palette;
                 Maps.h_flip[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_h_flip;
                 Maps.v_flip[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_v_flip;
-                //Maps.priority[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_priority;
+                Maps.priority[temp_offset2 + ((map_height - 1) * Maps.W)] = temp_priority;
             }
             common_update2();
             label5.Focus();
@@ -5131,7 +5151,7 @@ namespace M1TE2
 
         private void button5_Click(object sender, EventArgs e)
         { // shift map down
-            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip; //, temp_priority;
+            int temp_offset, temp_tile, temp_palette, temp_h_flip, temp_v_flip, temp_priority;
             int temp_offset2, temp_offset3;
             if (map_view > 2) return;
             temp_offset = Maps.LAYER * map_view;
@@ -5146,7 +5166,7 @@ namespace M1TE2
                 temp_palette = Maps.palette[temp_offset2 + ((map_height - 1) * Maps.W)];
                 temp_h_flip = Maps.h_flip[temp_offset2 + ((map_height - 1) * Maps.W)];
                 temp_v_flip = Maps.v_flip[temp_offset2 + ((map_height - 1) * Maps.W)];
-                //temp_priority = Maps.priority[temp_offset2 + ((map_height - 1) * Maps.W)];
+                temp_priority = Maps.priority[temp_offset2 + ((map_height - 1) * Maps.W)];
 
                 for (int yy = map_height - 2; yy >= 0; yy--)
                 {
@@ -5156,14 +5176,14 @@ namespace M1TE2
                     Maps.palette[temp_offset3 + Maps.W] = Maps.palette[temp_offset3];
                     Maps.h_flip[temp_offset3 + Maps.W] = Maps.h_flip[temp_offset3];
                     Maps.v_flip[temp_offset3 + Maps.W] = Maps.v_flip[temp_offset3];
-                    //Maps.priority[temp_offset3 + Maps.W] = Maps.priority[temp_offset3];
+                    Maps.priority[temp_offset3 + Maps.W] = Maps.priority[temp_offset3];
                 }
                 // put bottom most row on top
                 Maps.tile[temp_offset2] = temp_tile;
                 Maps.palette[temp_offset2] = temp_palette;
                 Maps.h_flip[temp_offset2] = temp_h_flip;
                 Maps.v_flip[temp_offset2] = temp_v_flip;
-                //Maps.priority[temp_offset2] = temp_priority;
+                Maps.priority[temp_offset2] = temp_priority;
             }
             common_update2();
             label5.Focus();
@@ -5190,58 +5210,72 @@ namespace M1TE2
             }
         }
 
-        private void textBox5_KeyPress(object sender, KeyPressEventArgs e)
-        { // the tile attribute box, palette 0-7
+        // Apply the palette box to the selected map tile(s). force = always apply
+        // (Enter); otherwise (blur) only apply when the value actually changed, so
+        // tabbing through the box doesn't overwrite the selection or add an undo step.
+        private void apply_palette_textbox(bool force)
+        {
             if (map_view > 2) return;
 
-            if (e.KeyChar == (char)Keys.Return)
-            {
-                Checkpoint();
-                
-                string str = textBox5.Text;
-                int value = 0;
-                int.TryParse(str, out value);
-                if (value > 7) value = 7; // max value
-                if (value < 0) value = 0; // min value
-                str = value.ToString();
-                textBox5.Text = str;
+            int value = 0;
+            int.TryParse(textBox5.Text, out value);
+            if (value > 7) value = 7; // max value
+            if (value < 0) value = 0; // min value
+            textBox5.Text = value.ToString(); // normalise the display
 
-                int offset = map_view * Maps.LAYER;
-                if (brushsize != BRUSH_MAP_ED)
+            int offset = map_view * Maps.LAYER;
+            int topLeft = (brushsize == BRUSH_MAP_ED)
+                ? offset + (ME_y1 * Maps.W) + ME_x1
+                : offset + (active_map_y * Maps.W) + active_map_x;
+
+            if (!force && Maps.palette[topLeft] == value) return; // blur with no change
+
+            Checkpoint();
+
+            if (brushsize != BRUSH_MAP_ED)
+            {
+                active_map_index = offset + (active_map_y * Maps.W) + active_map_x;
+                Maps.palette[active_map_index] = value;
+            }
+            else
+            { // map edit mode, recolor the entire selection
+                for (int y1 = ME_y1; y1 < ME_y2; y1++)
                 {
-                    active_map_index = active_map_x + (active_map_y * Maps.W) + offset;
-                    Maps.palette[active_map_index] = value;
-                }
-                else
-                { // map edit mode, recolor the entire selection
-                    //int offset = map_view * Maps.LAYER;
-                    for (int y1 = ME_y1; y1 < ME_y2; y1++)
+                    for (int x1 = ME_x1; x1 < ME_x2; x1++)
                     {
-                        for (int x1 = ME_x1; x1 < ME_x2; x1++)
-                        {
-                            active_map_index = offset + (y1 * Maps.W) + x1;
-                            Maps.palette[active_map_index] = value;
-                        }
+                        Maps.palette[offset + (y1 * Maps.W) + x1] = value;
                     }
                 }
-
-                //also change the palette selection
-                if(map_view == 2)
-                {
-                    pal_y = (value >> 2);
-                    pal_x = (value & 3) << 2;
-                }
-                else
-                {
-                    pal_y = value;
-                }
-                
-                update_palette();
-                common_update2();
-
-                e.Handled = true; // prevent ding on return press
-                label5.Focus();
             }
+
+            //also change the palette selection
+            if (map_view == 2)
+            {
+                pal_y = (value >> 2);
+                pal_x = (value & 3) << 2;
+            }
+            else
+            {
+                pal_y = value;
+            }
+
+            update_palette();
+            common_update2();
+        }
+
+        private void textBox5_KeyPress(object sender, KeyPressEventArgs e)
+        { // the tile attribute box, palette 0-7
+            if (e.KeyChar == (char)Keys.Return)
+            {
+                apply_palette_textbox(true); // Enter: always apply
+                e.Handled = true; // prevent ding on return press
+                label5.Focus();   // (also fires Leave below, which no-ops since unchanged)
+            }
+        }
+
+        private void textBox5_Leave(object sender, EventArgs e)
+        { // commit on blur too, but only if the value actually changed
+            apply_palette_textbox(false);
         }
 
 
@@ -5253,24 +5287,48 @@ namespace M1TE2
 
 
 
+        // Apply the map-height box (1-64); only redraws when the height changes, so
+        // committing on both Enter and blur stays idempotent.
+        private void apply_height_textbox()
+        {
+            int value = 32; //default
+            int.TryParse(textBox6.Text, out value);
+            if (value > 64) value = 64; // max value
+            if (value < 1) value = 32; // just use default if error
+            textBox6.Text = value.ToString(); // normalise the display
+
+            if (value == map_height) return; // no change
+            map_height = value; //1-64
+            update_tilemap();
+        }
+
         private void textBox6_KeyPress(object sender, KeyPressEventArgs e)
         { // the map height box, 1-64
             if (e.KeyChar == (char)Keys.Return)
             {
-                string str = textBox6.Text;
-                int value = 32; //default
-                int.TryParse(str, out value);
-                if (value > 64) value = 64; // max value
-                if (value < 1) value = 32; // just use default if error
-                str = value.ToString();
-                textBox6.Text = str;
-
-                map_height = value; //1-64
-
-                update_tilemap();
+                apply_height_textbox();
                 e.Handled = true; // prevent ding on return press
                 label5.Focus();
             }
+        }
+
+        private void textBox6_Leave(object sender, EventArgs e)
+        { // commit on blur too
+            apply_height_textbox();
+        }
+
+        // Apply the map-width box; accepts 32 or 64 (snaps to the nearer). Only
+        // redraws when the width changes so Enter/blur stay idempotent.
+        private void apply_width_textbox()
+        {
+            int value = 32;
+            int.TryParse(textBox7.Text, out value);
+            value = (value >= 48) ? 64 : 32; // only 32 or 64 are valid SNES widths
+            textBox7.Text = value.ToString(); // normalise the display
+
+            if (value == map_width) return; // no change
+            map_width = value;
+            update_tilemap();
         }
 
         // the map width box, accepts 32 or 64 (snaps to the nearer)
@@ -5278,16 +5336,15 @@ namespace M1TE2
         {
             if (e.KeyChar == (char)Keys.Return)
             {
-                int value = 32;
-                int.TryParse(textBox7.Text, out value);
-                value = (value >= 48) ? 64 : 32; // only 32 or 64 are valid SNES widths
-                map_width = value;
-                textBox7.Text = value.ToString();
-
-                update_tilemap();
+                apply_width_textbox();
                 e.Handled = true;
                 label5.Focus();
             }
+        }
+
+        private void textBox7_Leave(object sender, EventArgs e)
+        { // commit on blur too
+            apply_width_textbox();
         }
 
         // keep the width box in sync after a load sets map_width
@@ -5299,56 +5356,50 @@ namespace M1TE2
 
 
         private void checkBox1_Click(object sender, EventArgs e)
-        { // h flip
+        { // H Flip — edits the selected map tile(s)
             if (map_view > 2) return;
-            if (brushsize == BRUSH_MAP_ED) 
-            {
-                checkBox1.Checked = false;
-                label5.Focus();
-                return;
-            } 
 
             Checkpoint();
 
-            active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
-            if (checkBox1.Checked == false)
+            if (brushsize == BRUSH_MAP_ED)
             {
-                Maps.h_flip[active_map_index] = 0;
+                // proper horizontal flip of the whole selection: reverse the columns
+                // and toggle each tile's h_flip (positions change, like a real flip)
+                ME_flip_h();
             }
             else
             {
-                Maps.h_flip[active_map_index] = 1;
+                active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
+                Maps.h_flip[active_map_index] = checkBox1.Checked ? 1 : 0;
             }
 
             update_tilemap();
+            RefreshSelectedTileAttrs(); // re-sync to the (possibly mirrored) top-left tile
             label5.Focus();
         }
 
 
 
         private void checkBox2_Click(object sender, EventArgs e)
-        { // v flip
+        { // V Flip — edits the selected map tile(s)
             if (map_view > 2) return;
-            if (brushsize == BRUSH_MAP_ED)
-            {
-                checkBox2.Checked = false;
-                label5.Focus();
-                return;
-            }
 
             Checkpoint();
 
-            active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
-            if (checkBox2.Checked == false)
+            if (brushsize == BRUSH_MAP_ED)
             {
-                Maps.v_flip[active_map_index] = 0;
+                // proper vertical flip of the whole selection: reverse the rows and
+                // toggle each tile's v_flip (positions change, like a real flip)
+                ME_flip_v();
             }
             else
             {
-                Maps.v_flip[active_map_index] = 1;
+                active_map_index = active_map_x + (active_map_y * Maps.W) + (Maps.LAYER * map_view);
+                Maps.v_flip[active_map_index] = checkBox2.Checked ? 1 : 0;
             }
 
             update_tilemap();
+            RefreshSelectedTileAttrs(); // re-sync to the (possibly mirrored) top-left tile
             label5.Focus();
         }
 
