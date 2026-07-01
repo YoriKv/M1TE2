@@ -1,3 +1,5 @@
+Post-fork updates are in the release changelog. This is the pre-fork readme.
+
 M1TE ver 3.6 (SNES Mode 1 Tile Editor) 
 Dec 9, 2022
 .NET 4.5.2 (works with MONO on non-Windows systems)
